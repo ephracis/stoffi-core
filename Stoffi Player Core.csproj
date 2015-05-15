@@ -136,7 +136,7 @@ It's written to be portable and used on multiple platforms.</Description>
     <Compile Include="Sources\Radio\Base.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Plugin API\Plugin API.csproj">
+    <ProjectReference Include="Vendor\PluginAPI\Stoffi Player Plugin.csproj">
       <Project>{93A30BAD-6826-47A7-AE2A-C6DB85ACCD9E}</Project>
       <Name>Plugin API</Name>
     </ProjectReference>

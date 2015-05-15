@@ -1,0 +1,3 @@
+[submodule "Vendor/PluginAPI"]
+	path = Vendor/PluginAPI
+	url = https://github.com/simplare/stoffi-player-plugin
