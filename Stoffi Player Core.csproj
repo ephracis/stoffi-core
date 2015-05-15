@@ -138,7 +138,7 @@ It's written to be portable and used on multiple platforms.</Description>
   <ItemGroup>
     <ProjectReference Include="Vendor\PluginAPI\Stoffi Player Plugin.csproj">
       <Project>{93A30BAD-6826-47A7-AE2A-C6DB85ACCD9E}</Project>
-      <Name>Plugin API</Name>
+      <Name>Stoffi Player Plugin</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
