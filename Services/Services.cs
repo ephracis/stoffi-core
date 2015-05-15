@@ -56,7 +56,6 @@ namespace Stoffi.Core.Services
 
 		private static OAuth.Manager oauth = new OAuth.Manager();
 		private static string oauth_request_token = "";
-		private static string domain = "https://stoffiplayer.com";
 		private static bool connected = true;
 		private static int failedPings = 0;
 		private static object sendLocker = new object();
@@ -162,14 +161,14 @@ namespace Stoffi.Core.Services
 		#endregion
 
 		#region Properties
-
+		
 		/// <summary>
 		/// Gets the loading album art image.
 		/// </summary>
 		public static string LoadingArt { get { return defaultArt; } }
 
 		/// <summary>
-		/// Gets whether or not the 
+		/// Gets whether or not the device is connected to the cloud.
 		/// </summary>
 		public static bool Connected
 		{
@@ -215,7 +214,7 @@ namespace Stoffi.Core.Services
 			get
 			{
 				return String.Format("{0}/{1}/oauth/authorize?oauth_token={2}",
-					domain, 
+					Domain, 
 					lang, 
 					oauth_request_token);
 			}
@@ -224,7 +223,7 @@ namespace Stoffi.Core.Services
 		/// <summary>
 		/// Gets the URL for logging out
 		/// </summary>
-		public static string LogoutURL { get { return String.Format("{0}/{1}/logout", domain, lang); } }
+		public static string LogoutURL { get { return String.Format("{0}/{1}/logout", Domain, lang); } }
 
 		/// <summary>
 		/// Gets the Identity representing the currently linked user.
@@ -242,7 +241,7 @@ namespace Stoffi.Core.Services
 		/// </summary>
 		public static string CallbackURL
 		{
-			get { return String.Format("{0}/dashboard", domain); }
+			get { return String.Format("{0}/dashboard", Domain); }
 		}
 
 		/// <summary>
@@ -253,7 +252,7 @@ namespace Stoffi.Core.Services
 			get
 			{
 				return String.Format("{0}/{1}/dashboard?callback=stoffi&oauth_token={2}&oauth_secret_token={3}",
-					domain,
+					Domain,
 					lang,
 					Settings.Manager.OAuthToken,
 					Settings.Manager.OAuthSecret);
@@ -373,7 +372,23 @@ namespace Stoffi.Core.Services
 		/// <summary>
 		/// Gets the domain name of the service.
 		/// </summary>
-		public static string Domain { get { return domain; } }
+		public static string Domain
+		{
+			get
+			{
+				switch (Settings.Manager.Channel)
+				{
+					case "stable":
+						return "https://stoffiplayer.com";
+					case "beta":
+						return "http://beta.stoffiplayer.com";
+					case "alpha":
+						return "http://local.stoffiplayer.com";
+					default:
+						throw new Exception("Invalid channel");
+				}
+			}
+		}
 
 		/// <summary>
 		/// Gets or sets the session ID of the juggernaut connection for real time communication.
@@ -383,6 +398,8 @@ namespace Stoffi.Core.Services
 			get { return realtimeSessionID; }
 			set
 			{
+				if (!Linked)
+					return;
 				realtimeSessionID = value;
 				if (!String.IsNullOrWhiteSpace(value))
 				{
@@ -797,7 +814,7 @@ namespace Stoffi.Core.Services
 			Dictionary<string,string> p = U.GetParams(U.GetQuery(url));
 			string token = p["oauth_token"];
 			string verifier = p["oauth_verifier"];
-			var access_url = domain + "/oauth/access_token";
+			var access_url = Domain + "/oauth/access_token";
 			try
 			{
 				OAuth.OAuthResponse accessToken = oauth.AcquireAccessToken(access_url, "POST", verifier);
@@ -1461,7 +1478,7 @@ namespace Stoffi.Core.Services
 				try
 				{
 					U.L(LogLevel.Debug, "SERVICE", "Retrieving playlists");
-					string url = String.Format("/me/Playlists.Manager.json");
+					string url = String.Format("/me/playlists.json");
 					var response = SendRequest(url, "GET");
 					if (response == null || response.StatusCode != HttpStatusCode.OK)
 					{
@@ -1547,7 +1564,7 @@ namespace Stoffi.Core.Services
 			{
 				try
 				{
-					oauth.AcquireRequestToken(domain + "/oauth/request_token", "POST");
+					oauth.AcquireRequestToken(Domain + "/oauth/request_token", "POST");
 					oauth_request_token = oauth["token"];
 				}
 				catch (Exception e)
@@ -1634,8 +1651,10 @@ namespace Stoffi.Core.Services
 			{
 				p.Filter = filter;
 				var type = p.Type;
-				var tracks = (JArray)playlist["songs"];
-				if (tracks == null)
+				JArray tracks = null;
+				if (playlist["songs"] != null)
+					tracks = (JArray)playlist["songs"];
+				else if (playlist["paginated songs"] != null)
 					tracks = (JArray)playlist["paginated_songs"];
 
 				List<Track> tracksToAdd = new List<Track>();
@@ -1883,7 +1902,7 @@ namespace Stoffi.Core.Services
 				{
 					U.L(LogLevel.Error, "SERVICE", "There was a problem retrieving user data");
 					U.L(LogLevel.Error, "SERVICE", response);
-					if (Connected || U.Ping(domain))
+					if (Connected || U.Ping(Domain))
 						Delink();
 				}
 				else
@@ -2270,9 +2289,9 @@ namespace Stoffi.Core.Services
 
 			string fullUrl = url + query;
 			if (!fullUrl.StartsWith("http") && !fullUrl.StartsWith("/"))
-				fullUrl = domain + "/" + fullUrl;
+				fullUrl = Domain + "/" + fullUrl;
 			else if (!fullUrl.StartsWith("http"))
-				fullUrl = domain + fullUrl;
+				fullUrl = Domain + fullUrl;
 			//U.L(LogLevel.Debug, "SERVICE", "Sending " + method + " request to " + fullUrl);
 
 			try
@@ -3423,7 +3442,7 @@ namespace Stoffi.Core.Services
 		/// <param name="state">The state (not used)</param>
 		private static void PerformReconnect(object state)
 		{
-			Ping(new Uri(domain));
+			Ping(new Uri(Domain));
 		}
 
 		/// <summary>
