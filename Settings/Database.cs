@@ -714,7 +714,7 @@ namespace Stoffi.Core.Settings
 			db.CreateTable ("cloudLinks",
 				new string[] { "provider", "picture", "names", "url", "connectUrl", "error" },
 				new string[] { "cloudID", "connected", "canShare", "doShare", "canListen", "doListen", "canDonate", "doDonate", "canCreatePlaylist", "doCreatePlaylist", "identity" });
-			db.CreateTable ("cloudIdentities", null, new string[] { "user", "configuration", "device", "synchronizeConfig", "synchronizePlaylists", "synchronizeQueue", "synchronizeFiles" });
+			db.CreateTable ("cloudIdentities", null, new string[] { "user", "configuration", "device", "synchronize", "synchronizeConfig", "synchronizePlaylists", "synchronizeQueue", "synchronizeFiles" });
 
 			db.CreateTable ("shortcuts", new string[] { "name", "category", "keys", "profile" }, new string[] { "global" });
 			db.CreateTable ("shortcutProfiles", new string[] { "name", "title" }, new string[] { "protected" });
@@ -810,19 +810,19 @@ namespace Stoffi.Core.Settings
 
 					#region GUI
 					case "winWidth":
-						winWidth = Convert.ToDouble (v);
+							winWidth = Convert.ToDouble(v, CultureInfo.InvariantCulture);
 						break;
 
 					case "winHeight":
-						winHeight = Convert.ToDouble (v);
+						winHeight = Convert.ToDouble(v, CultureInfo.InvariantCulture);
 						break;
 
 					case "winTop":
-						winTop = Convert.ToDouble (v);
+						winTop = Convert.ToDouble(v, CultureInfo.InvariantCulture);
 						break;
 
 					case "winLeft":
-						winLeft = Convert.ToDouble (v);
+						winLeft = Convert.ToDouble(v, CultureInfo.InvariantCulture);
 						break;
 
 					case "winState":
@@ -830,19 +830,19 @@ namespace Stoffi.Core.Settings
 						break;
 
 					case "equalizerWidth":
-						equalizerWidth = Convert.ToDouble (v);
+						equalizerWidth = Convert.ToDouble(v, CultureInfo.InvariantCulture);
 						break;
 
 					case "equalizerHeight":
-						equalizerHeight = Convert.ToDouble (v);
+						equalizerHeight = Convert.ToDouble(v, CultureInfo.InvariantCulture);
 						break;
 
 					case "equalizerTop":
-						equalizerTop = Convert.ToDouble (v);
+						equalizerTop = Convert.ToDouble(v, CultureInfo.InvariantCulture);
 						break;
 
 					case "equalizerLeft":
-						equalizerLeft = Convert.ToDouble (v);
+						equalizerLeft = Convert.ToDouble(v, CultureInfo.InvariantCulture);
 						break;
 
 					case "currentSelectedNavigation":
@@ -850,11 +850,11 @@ namespace Stoffi.Core.Settings
 						break;
 
 					case "navigationPaneWidth":
-						navigationPaneWidth = Convert.ToDouble (v);
+						navigationPaneWidth = Convert.ToDouble(v, CultureInfo.InvariantCulture);
 						break;
 
 					case "detailsPaneHeight":
-						detailsPaneHeight = Convert.ToDouble (v);
+						detailsPaneHeight = Convert.ToDouble(v, CultureInfo.InvariantCulture);
 						break;
 
 					case "detailsPaneVisible":
@@ -989,11 +989,11 @@ namespace Stoffi.Core.Settings
 						break;
 
 					case "historyIndex":
-						historyIndex = Convert.ToInt32 (v);
+						historyIndex = Convert.ToInt32(v, CultureInfo.InvariantCulture);
 						break;
 
 					case "shuffle":
-						shuffle = StringToShuffle (v);
+						shuffle = StringToShuffle(v);
 						break;
 
 					case "repeat":
@@ -1001,11 +1001,11 @@ namespace Stoffi.Core.Settings
 						break;
 
 					case "volume":
-						volume = Convert.ToDouble (v);
+						volume = Convert.ToDouble(v, CultureInfo.InvariantCulture);
 						break;
 
 					case "seek":
-						seek = Convert.ToDouble (v);
+						seek = Convert.ToDouble(v, CultureInfo.InvariantCulture);
 						break;
 
 					case "mediaState":
@@ -1014,11 +1014,50 @@ namespace Stoffi.Core.Settings
 					#endregion
 
 					#region Cloud
+					case "downloadAlbumArt":
+						downloadAlbumArt = v == "1";
+						break;
+
+					case "downloadAlbumArtSmall":
+						downloadAlbumArtSmall = v == "1";
+						break;
+
+					case "downloadAlbumArtMedium":
+						downloadAlbumArtMedium = v == "1";
+						break;
+
+					case "downloadAlbumArtLarge":
+						downloadAlbumArtLarge = v == "1";
+						break;
+
+					case "downloadAlbumArtHuge":
+						downloadAlbumArtHuge = v == "1";
+						break;
+
+					case "submitSongs":
+						submitSongs = v == "1";
+						break;
+
+					case "oauthSecret":
+						oauthSecret = v;
+						break;
+
+					case "oauthToken":
+						oauthToken = v;
+						break;
 					#endregion
 
 					#region Misc
 					case "firstRun":
 						firstRun = v == "1";
+						break;
+
+					case "upgradeCheck":
+						lastUpgradeCheck = long.Parse(v);
+						break;
+
+					case "currentVisualizer":
+						currentVisualizer = v;
 						break;
 					#endregion
 
@@ -1128,7 +1167,7 @@ namespace Stoffi.Core.Settings
 				if (lastPlayed > 0)
 					track.LastPlayed = DateTime.FromFileTimeUtc(lastPlayed);
 				track.LastWrite = Convert.ToInt64(row["lastWrite"]);
-				track.Length = Convert.ToDouble(row["length"]);
+				track.Length = Convert.ToDouble(row["length"], CultureInfo.InvariantCulture);
 				track.Number = Convert.ToInt32(row["number"]);
 				track.OriginalArtURL = row["originalArtUrl"].ToString();
 				track.Path = row["path"].ToString();
@@ -1175,7 +1214,7 @@ namespace Stoffi.Core.Settings
 		{
 			try
 			{
-				var pos = Convert.ToDouble(row["pos"]);
+				var pos = Convert.ToDouble(row["pos"], CultureInfo.InvariantCulture);
 				var path = row["track"].ToString();
 				var type = row["type"].ToString();
 				return new Tuple<string, string, double>(path,type,pos);
@@ -1217,8 +1256,8 @@ namespace Stoffi.Core.Settings
 				config.AcceptFileDrops = row["acceptDrop"].ToString() == "1";
 				config.Filter = row["filter"].ToString();
 				config.HasNumber = row["allowNumber"].ToString() == "1";
-				config.HorizontalScrollOffset = Convert.ToDouble(row["horizontalOffset"]);
-				config.IconSize = Convert.ToDouble(row["iconSize"]);
+				config.HorizontalScrollOffset = Convert.ToDouble(row["horizontalOffset"], CultureInfo.InvariantCulture);
+				config.IconSize = Convert.ToDouble(row["iconSize"], CultureInfo.InvariantCulture);
 				config.IsClickSortable = row["canClickSort"].ToString() == "1";
 				config.IsDragSortable = row["canDragSort"].ToString() == "1";
 				config.IsNumberVisible = row["showNumber"].ToString() == "1";
@@ -1227,8 +1266,8 @@ namespace Stoffi.Core.Settings
 				config.NumberIndex = Convert.ToInt32(row["numberPos"]);
 				config.Sorts = new ObservableCollection<string>(row["sorting"].ToString().Split(';'));
 				config.UseIcons = row["useIcons"].ToString() == "1";
-				config.VerticalScrollOffset = Convert.ToDouble(row["verticalOffset"]);
-				config.VerticalScrollOffsetWithoutSearch = Convert.ToDouble(row["verticalOffsetWithoutSearch"]);
+				config.VerticalScrollOffset = Convert.ToDouble(row["verticalOffset"], CultureInfo.InvariantCulture);
+				config.VerticalScrollOffsetWithoutSearch = Convert.ToDouble(row["verticalOffsetWithoutSearch"], CultureInfo.InvariantCulture);
 
 				if (!String.IsNullOrWhiteSpace(row["selection"].ToString()))
 				{
@@ -1285,7 +1324,7 @@ namespace Stoffi.Core.Settings
 				column.Name = row["name"].ToString();
 				column.SortField = row["sortOn"].ToString();
 				column.Text = row["text"].ToString();
-				column.Width = Convert.ToDouble(row["width"]);
+				column.Width = Convert.ToDouble(row["width"], CultureInfo.InvariantCulture);
 				return column;
 			}
 			catch (Exception e)
@@ -1402,7 +1441,7 @@ namespace Stoffi.Core.Settings
 			{
 				profile.IsProtected = row["protected"].ToString() != "0";
 				profile.Name = row["name"].ToString();
-				profile.EchoLevel = (float)Convert.ToDouble(row["echo"]);
+				profile.EchoLevel = (float)Convert.ToDouble(row["echo"], CultureInfo.InvariantCulture);
 				var levels = from i in row["bands"].ToString().Split(';') select float.Parse(i);
 				profile.Levels = new ObservableCollection<float>(levels);
 				return profile;
@@ -1774,7 +1813,7 @@ namespace Stoffi.Core.Settings
 					break;
 					#endregion
 
-					#region Lists
+				#region Lists
 				case "SourceListConfig":
 					if (sourceListConfig != null)
 					{
@@ -1909,15 +1948,15 @@ namespace Stoffi.Core.Settings
 						discListConfig.PropertyChanged += Object_PropertyChanged;
 					}
 					break;
-					#endregion
+				#endregion
 
-					#region Application params
+				#region Application params
 				case "ID":
 					SaveConfig ("config", "id", DBEncode(id));
 					break;
-					#endregion
+				#endregion
 
-					#region Settings
+				#region Settings
 				case "UpgradePolicy":
 					SaveConfig ("config", "upgradePolicy", UpgradeToString(upgradePolicy));
 					break;
@@ -1981,9 +2020,9 @@ namespace Stoffi.Core.Settings
 				case "YouTubeQuality":
 					SaveConfig ("config", "youTubeQuality", youTubeQuality);
 					break;
-					#endregion
+				#endregion
 
-					#region Playback
+				#region Playback
 				case "CurrentActiveNavigation":
 					SaveConfig ("config", "currentActiveNavigation", currentActiveNavigation);
 					break;
@@ -2030,9 +2069,9 @@ namespace Stoffi.Core.Settings
 				case "MediaState":
 					SaveConfig ("config", "mediaState", MediaStateToString(mediaState));
 					break;
-					#endregion
+				#endregion
 
-					#region Cloud
+				#region Cloud
 				case "DownloadAlbumArt":
 					SaveConfig ("config", "downloadAlbumArt", DBEncode(downloadAlbumArt));
 					break;
@@ -2065,9 +2104,17 @@ namespace Stoffi.Core.Settings
 				case "SubmitSongs":
 					SaveConfig ("config", "submitSongs", DBEncode(submitSongs));
 					break;
-					#endregion
 
-					#region Misc
+				case "OAuthSecret":
+					SaveConfig("config", "oauthSecret", oauthSecret);
+					break;
+
+				case "OAuthToken":
+					SaveConfig("config", "oauthToken", oauthToken);
+					break;
+				#endregion
+
+				#region Misc
 				case "FirstRun":
 					SaveConfig ("config", "firstRun", DBEncode(firstRun));
 					break;
@@ -2085,18 +2132,10 @@ namespace Stoffi.Core.Settings
 					}
 					break;
 
-				case "OAuthSecret":
-					SaveConfig ("config", "oauthSecret", oauthSecret);
-					break;
-
-				case "OAuthToken":
-					SaveConfig ("config", "oauthToken", oauthToken);
-					break;
-
 				case "CurrentVisualizer":
 					SaveConfig ("config", "currentVisualizer", currentVisualizer);
 					break;
-					#endregion
+				#endregion
 
 				default:
 					break;
@@ -2563,7 +2602,7 @@ namespace Stoffi.Core.Settings
 					db.Insert ("playlistTracks", data);
 				}
 			}
-			// TODO: keyboard shortcuts, equalizer?, plugin meta data
+			// TODO: keyboard shortcuts, equalizer, plugin meta data
 		}
 
 		#endregion
@@ -2633,6 +2672,17 @@ namespace Stoffi.Core.Settings
 		{
 			foreach (var source in sources)
 				db.Delete (table, String.Format ("data={0} and type={1}", DBEncode (source.Data), DBEncode (SourceTypeToString (source.Type))));
+		}
+
+		/// <summary>
+		/// Remove cloud identities from a database table.
+		/// </summary>
+		/// <param name="sources">Source collection.</param>
+		/// <param name="table">Database table.</param>
+		private static void DeleteCloudIdentities(IEnumerable<Identity> identities, string table)
+		{
+			foreach (var identity in identities)
+				db.Delete(table, String.Format("userID={0}", DBEncode(identity.UserID)));
 		}
 
 		#endregion
@@ -2919,7 +2969,7 @@ namespace Stoffi.Core.Settings
 		/// <param name="x">The value to store.</param>
 		private static string DBEncode(ulong x)
 		{
-			return x.ToString("0", CultureInfo.GetCultureInfo("en-US"));
+			return x.ToString("0", CultureInfo.InvariantCulture);
 		}
 
 		/// <summary>
@@ -2929,7 +2979,7 @@ namespace Stoffi.Core.Settings
 		/// <param name="x">The value to store.</param>
 		private static string DBEncode(long x)
 		{
-			return x.ToString("0", CultureInfo.GetCultureInfo("en-US"));
+			return x.ToString("0", CultureInfo.InvariantCulture);
 		}
 
 		/// <summary>
@@ -2939,7 +2989,7 @@ namespace Stoffi.Core.Settings
 		/// <param name="x">The value to store.</param>
 		private static string DBEncode(uint x)
 		{
-			return x.ToString("0", CultureInfo.GetCultureInfo("en-US"));
+			return x.ToString("0", CultureInfo.InvariantCulture);
 		}
 
 		/// <summary>
@@ -2949,7 +2999,7 @@ namespace Stoffi.Core.Settings
 		/// <param name="x">The value to store.</param>
 		private static string DBEncode(int x)
 		{
-			return x.ToString("0", CultureInfo.GetCultureInfo("en-US"));
+			return x.ToString("0", CultureInfo.InvariantCulture);
 		}
 
 		/// <summary>
@@ -2959,7 +3009,7 @@ namespace Stoffi.Core.Settings
 		/// <param name="x">The value to store.</param>
 		private static string DBEncode(double x)
 		{
-			return x.ToString("0.0000", CultureInfo.GetCultureInfo("en-US"));
+			return x.ToString("0.0000", CultureInfo.InvariantCulture);
 		}
 
 		/// <summary>
@@ -3048,6 +3098,10 @@ namespace Stoffi.Core.Settings
 					{
 						Update<Playlist> ("playlists", item.Item1 as Playlist);
 					}
+					else if (item.Item1 is Identity)
+					{
+						Update<Identity>("cloudIdentities", item.Item1 as Identity);
+					}
 				}
 				propertyChangedBuffer.Clear ();
 			}
@@ -3084,7 +3138,7 @@ namespace Stoffi.Core.Settings
 		}
 
 		/// <summary>
-		/// Handles a change in a track collection.
+		/// Handles a change in a collection.
 		/// 
 		/// Will iterate the collectionChangedBuffer and update the database
 		/// according to those changes.
@@ -3275,6 +3329,34 @@ namespace Stoffi.Core.Settings
 						{
 						x.PropertyChanged -= Object_PropertyChanged;
 						x.PropertyChanged += Object_PropertyChanged;
+						}
+					}
+					else if (collection == cloudIdentities)
+					{
+						switch (item.Item2.Action)
+						{
+							case NotifyCollectionChangedAction.Add:
+								SaveCloudIdentities(from i in newItems select i as Identity, "cloudIdentities");
+								break;
+
+							case NotifyCollectionChangedAction.Remove:
+								DeleteCloudIdentities(from i in oldItems select i as Identity, "cloudIdentities");
+								break;
+
+							case NotifyCollectionChangedAction.Replace:
+								DeleteCloudIdentities(from i in oldItems select i as Identity, "cloudIdentities");
+								SavePlaylists(from i in newItems select i as Playlist, "cloudIdentities");
+								break;
+
+							case NotifyCollectionChangedAction.Reset:
+								db.Delete("cloudIdentities");
+								SaveCloudIdentities(cloudIdentities, "cloudIdentities");
+								break;
+						}
+						foreach (var x in cloudIdentities)
+						{
+							x.PropertyChanged -= Object_PropertyChanged;
+							x.PropertyChanged += Object_PropertyChanged;
 						}
 					}
 				}

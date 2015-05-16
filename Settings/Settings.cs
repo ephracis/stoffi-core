@@ -676,11 +676,11 @@ namespace Stoffi.Core.Settings
 		}
 
 		/// <summary>
-		/// Gets the channel of the application (Alpha, Beta or Stable).
+		/// Gets the channel of the application (alpha, beta or stable).
 		/// </summary>
 		public static string Channel
 		{
-			get { return "beta"; } // build-marker channel DO NOT TOUCH
+			get { return "alpha"; } // build-marker channel DO NOT TOUCH
 		}
 
 		/// <summary>
@@ -1861,6 +1861,8 @@ namespace Stoffi.Core.Settings
 			files.CollectionChanged += ObservableCollection_CollectionChanged;
 			playlists.CollectionChanged -= ObservableCollection_CollectionChanged;
 			playlists.CollectionChanged += ObservableCollection_CollectionChanged;
+			cloudIdentities.CollectionChanged -= ObservableCollection_CollectionChanged;
+			cloudIdentities.CollectionChanged += ObservableCollection_CollectionChanged;
 
 			foreach (var x in radio)
 			{
@@ -1890,6 +1892,11 @@ namespace Stoffi.Core.Settings
 				x.Tracks.CollectionChanged += ObservableCollection_CollectionChanged;
 			}
 			foreach (var x in pluginSettings)
+			{
+				x.PropertyChanged -= Object_PropertyChanged;
+				x.PropertyChanged += Object_PropertyChanged;
+			}
+			foreach (var x in cloudIdentities)
 			{
 				x.PropertyChanged -= Object_PropertyChanged;
 				x.PropertyChanged += Object_PropertyChanged;
@@ -2333,7 +2340,7 @@ namespace Stoffi.Core.Settings
 		/// <param name="newValue">The value of the property after the change</param>
 		public static void OnPropertyChanged(string name, object oldValue, object newValue)
 		{
-			if (oldValue != newValue)
+			if (!U.IsClosing && oldValue != newValue)
 			{
 				if (PropertyChanged != null)
 					PropertyChanged(null, new PropertyChangedWithValuesEventArgs(name, oldValue, newValue));
