@@ -392,7 +392,7 @@ namespace Stoffi.Core.Settings
 			get
 			{
 				string l = language;
-				if (l != null) return l;
+				if (!String.IsNullOrWhiteSpace(l)) return l;
 				return Thread.CurrentThread.CurrentUICulture.IetfLanguageTag;
 			}
 			set
@@ -887,7 +887,10 @@ namespace Stoffi.Core.Settings
 		/// </summary>
 		public static KeyboardShortcutProfile CurrentShortcutProfile
 		{
-			get { return currentShortcutProfile; }
+			get
+			{
+				return currentShortcutProfile ?? shortcutProfiles.First();
+			}
 			set
 			{
 				object old = currentShortcutProfile;
@@ -1334,7 +1337,7 @@ namespace Stoffi.Core.Settings
 		}
 
 		/// <summary>
-		/// Gets or sets the navigation that the currently playing track belongs to
+		/// Gets or sets currently displayed visualizer.
 		/// </summary>
 		public static string CurrentVisualizer
 		{

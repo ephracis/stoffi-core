@@ -197,3 +197,4 @@ FakesAssemblies/
 
 # Secrets
 Services/Keys.cs
+Tools/SettingsMigratorTester/settings.s3db

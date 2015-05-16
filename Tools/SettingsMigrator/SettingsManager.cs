@@ -1380,7 +1380,7 @@ namespace Stoffi.Tools.Migrator
 		#region Members
 
 		private string name;
-		private ObservableCollection<TrackData> tracks;
+		private List<TrackData> tracks;
 		private ViewDetailsConfig listConfig;
 
 		#endregion
@@ -1437,7 +1437,7 @@ namespace Stoffi.Tools.Migrator
 		/// <summary>
 		/// Gets or sets the collection of tracks of the playlist
 		/// </summary>
-		public ObservableCollection<TrackData> Tracks
+		public List<TrackData> Tracks
 		{
 			get { return tracks; }
 			set { tracks = value; OnPropertyChanged("Tracks"); }
@@ -1550,6 +1550,15 @@ namespace Stoffi.Tools.Migrator
 		/// Gets or sets the number of the track on the album.
 		/// </summary>
 		public uint TrackNumber
+		{
+			get { return track; }
+			set { SetProp<uint>(ref track, value, "TrackNumber"); }
+		}
+
+		/// <summary>
+		/// Gets or sets the number of the track on the album.
+		/// </summary>
+		public uint Track
 		{
 			get { return track; }
 			set { SetProp<uint>(ref track, value, "TrackNumber"); }
@@ -1703,17 +1712,9 @@ namespace Stoffi.Tools.Migrator
 		/// <summary>
 		/// Gets or sets the bookmarks of the track (percentage).
 		/// </summary>
-		public ObservableCollection<Tuple<string, double>> Bookmarks
+		public List<List<string>> Bookmarks
 		{
-			get { return bookmarks; }
-			set
-			{
-				if (bookmarks != null)
-					bookmarks.CollectionChanged -= CollectionChanged;
-				SetProp<ObservableCollection<Tuple<string, double>>>(ref bookmarks, value, "Bookmarks");
-				if (bookmarks != null)
-					bookmarks.CollectionChanged += CollectionChanged;
-			}
+			get; set;
 		}
 
 		/// <summary>

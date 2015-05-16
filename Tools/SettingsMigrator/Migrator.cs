@@ -45,17 +45,19 @@ namespace Stoffi.Tools.Migrator
 
         #endregion
 
-        #region Methods
+		#region Methods
 
-        #region Public
+		#region Public
 
-        /// <summary>
-        /// Migrates a settings file.
-        /// </summary>
-        /// <param name="fromFile">The original file</param>
-        /// <param name="toFile">The output file</param>
-        public void Migrate(String fromFile, String toFile)
-        {
+		/// <summary>
+		/// Migrates a settings file.
+		/// </summary>
+		/// <param name="fromFile">The original file</param>
+		/// <param name="toFile">The output file</param>
+		public void Migrate(String fromFile, String toFile)
+		{
+			SettingsManager.InitializeDatabase(toFile, true);
+			db = SettingsManager.db;
 			NewSettings settings = new NewSettings();
 
 			U.L(LogLevel.Information, "Migrator", "Reading configuration");
@@ -65,15 +67,79 @@ namespace Stoffi.Tools.Migrator
 
 			#region Modifications
 
+			var listConfigs = new List<ViewDetailsConfig>();
+			listConfigs.Add(settings.FileListConfig);
+			listConfigs.Add(settings.YouTubeListConfig);
+			listConfigs.Add(settings.JamendoListConfig);
+			listConfigs.Add(settings.RadioListConfig);
+			listConfigs.Add(settings.QueueListConfig);
+			listConfigs.Add(settings.HistoryListConfig);
+			listConfigs.Add(settings.DiscListConfig);
+			listConfigs.Add(settings.SoundCloudListConfig);
+			foreach (var x in settings.Playlists)
+				listConfigs.Add(x.ListConfig);
+			foreach (var config in listConfigs)
+			{
+				if (config == null)
+					continue;
+				foreach (var column in config.Columns)
+				{
+					if (column.Binding == "Track")
+					{
+						column.Binding = "TrackData";
+						break;
+					}
+				}
+			}
+
+			// set default true values
+			if (String.IsNullOrWhiteSpace(settings.DetailsPaneVisible))
+				settings.DetailsPaneVisible = "1";
+			if (String.IsNullOrWhiteSpace(settings.DownloadAlbumArt))
+				settings.DownloadAlbumArt = "1";
+			if (String.IsNullOrWhiteSpace(settings.DownloadAlbumArtSmall))
+				settings.DownloadAlbumArtSmall = "1";
+			if (String.IsNullOrWhiteSpace(settings.DownloadAlbumArtMedium))
+				settings.DownloadAlbumArtMedium = "1";
+			if (String.IsNullOrWhiteSpace(settings.DownloadAlbumArtLarge))
+				settings.DownloadAlbumArtLarge = "1";
+			if (String.IsNullOrWhiteSpace(settings.ShowOSD))
+				settings.ShowOSD = "1";
+			if (String.IsNullOrWhiteSpace(settings.SubmitSongs))
+				settings.SubmitSongs = "1";
+
+			// turn "true" into "1"
+			settings.DetailsPaneVisible = FixBoolean(settings.DetailsPaneVisible);
+			settings.DownloadAlbumArt = FixBoolean(settings.DownloadAlbumArt);
+			settings.DownloadAlbumArtSmall = FixBoolean(settings.DownloadAlbumArtSmall);
+			settings.DownloadAlbumArtMedium = FixBoolean(settings.DownloadAlbumArtMedium);
+			settings.DownloadAlbumArtLarge = FixBoolean(settings.DownloadAlbumArtLarge);
+			settings.DownloadAlbumArtHuge = FixBoolean(settings.DownloadAlbumArtHuge);
+			settings.FastStart = FixBoolean(settings.FastStart);
+			settings.FirstRun = FixBoolean(settings.FirstRun);
+			settings.MenuBarVisible = FixBoolean(settings.MenuBarVisible);
+			settings.MinimizeToTray = FixBoolean(settings.MinimizeToTray);
+			settings.PauseWhenLocked = FixBoolean(settings.PauseWhenLocked);
+			settings.PauseWhenSongEnds = FixBoolean(settings.PauseWhenSongEnds);
+			settings.ShowOSD = FixBoolean(settings.ShowOSD);
+			settings.SubmitSongs = FixBoolean(settings.SubmitSongs);
+
 			#endregion
 
 			U.L(LogLevel.Information, "Migrator", "Writing configuration");
-			//WriteConfig(settings, toFile);
+			WriteConfig(settings, toFile);
 		}
 
         #endregion
 
 		#region Private
+
+		private string FixBoolean(string prop)
+		{
+			if (!String.IsNullOrWhiteSpace(prop) && (prop.ToLower() == "true" || prop == "1"))
+				return "1";
+			return "0";
+		}
 
 		public void InitializeEqualizerProfiles(List<EqualizerProfile> profiles)
 		{
@@ -477,7 +543,7 @@ namespace Stoffi.Tools.Migrator
 							settings.SubmitSongs = xmlReader.Value;
 
 						else if (name == "ListenBuffer")
-							settings.ListenBuffer = ReadSetting<System.Collections.Generic.Dictionary<string, System.Tuple<string, string>>>(xmlReader);
+							settings.ListenBuffer = ReadSetting<BufferDict>(xmlReader);
 
 						else if (name == "FirstRun")
 							settings.FirstRun = xmlReader.Value;
@@ -508,158 +574,91 @@ namespace Stoffi.Tools.Migrator
 		private void WriteConfig(NewSettings settings, String file)
 		{
 			U.L(LogLevel.Debug, "Migrator", "Writing config");
-			XmlTextWriter xmlWriter = new XmlTextWriter(file, Encoding.UTF8);
-			xmlWriter.WriteStartDocument();
-			xmlWriter.WriteWhitespace("\n");
-			xmlWriter.WriteStartElement("configuration");
-			xmlWriter.WriteWhitespace("\n    ");
+			SettingsManager.SaveConfig("config", "winWidth",                  settings.WinWidth);
+			SettingsManager.SaveConfig("config", "winHeight",                 settings.WinHeight);
+			SettingsManager.SaveConfig("config", "winTop",                    settings.WinTop);
+			SettingsManager.SaveConfig("config", "winLeft",                   settings.WinLeft);
+			SettingsManager.SaveConfig("config", "winState",                  settings.WinState);
+			SettingsManager.SaveConfig("config", "equalizerWidth",            settings.EqualizerWidth);
+			SettingsManager.SaveConfig("config", "equalizerHeight",           settings.EqualizerHeight);
+			SettingsManager.SaveConfig("config", "equalizerTop",              settings.EqualizerTop);
+			SettingsManager.SaveConfig("config", "equalizerLeft",             settings.EqualizerLeft);
+			SettingsManager.SaveConfig("config", "currentSelectedNavigation", settings.CurrentSelectedNavigation);
+			SettingsManager.SaveConfig("config", "currentActiveNavigation",   settings.CurrentActiveNavigation);
+			SettingsManager.SaveConfig("config", "navigationPaneWidth",       settings.NavigationPaneWidth);
+			SettingsManager.SaveConfig("config", "detailsPaneHeight",         settings.DetailsPaneHeight);
+			SettingsManager.SaveConfig("config", "detailsPaneVisible",        settings.DetailsPaneVisible);
+			SettingsManager.SaveConfig("config", "menuBarVisible",            settings.MenuBarVisible);
+			SettingsManager.SaveConfig("config", "language",                  settings.Language);
+			SettingsManager.SaveConfig("config", "id",                        settings.ID);
+			SettingsManager.SaveConfig("config", "historyIndex",              settings.HistoryIndex);
+			SettingsManager.SaveConfig("config", "upgradePolicy",             SettingsManager.UpgradeToString(settings.UpgradePolicy));
+			SettingsManager.SaveConfig("config", "searchPolicy",              SettingsManager.SearchToString(settings.SearchPolicy));
+			SettingsManager.SaveConfig("config", "openAddPolicy",             SettingsManager.OpenAddToString(settings.OpenAddPolicy));
+			SettingsManager.SaveConfig("config", "openPlayPolicy",            SettingsManager.OpenPlayToString(settings.OpenPlayPolicy));
+			SettingsManager.SaveConfig("config", "fastStart",                 settings.FastStart);
+			SettingsManager.SaveConfig("config", "showNotifications",         settings.ShowOSD);
+			SettingsManager.SaveConfig("config", "pauseWhenLocked",           settings.PauseWhenLocked);
+			SettingsManager.SaveConfig("config", "pauseWhenSongEnds",         settings.PauseWhenSongEnds);
+			SettingsManager.SaveConfig("config", "youTubeFilter",             settings.YouTubeFilter);
+			SettingsManager.SaveConfig("config", "youTubeQuality",            settings.YouTubeQuality);
+			SettingsManager.SaveConfig("config", "shuffle",                   SettingsManager.ShuffleToString(settings.Shuffle));
+			SettingsManager.SaveConfig("config", "repeat",                    SettingsManager.RepeatToString(settings.Repeat));
+			SettingsManager.SaveConfig("config", "volume",                    settings.Volume);
+			SettingsManager.SaveConfig("config", "seek",                      settings.Seek);
+			SettingsManager.SaveConfig("config", "mediaState",                SettingsManager.OpenAddToString(settings.MediaState));
+			SettingsManager.SaveConfig("config", "downloadAlbumArt",          settings.DownloadAlbumArt);
+			SettingsManager.SaveConfig("config", "downloadAlbumArtSmall",     settings.DownloadAlbumArtSmall);
+			SettingsManager.SaveConfig("config", "downloadAlbumArtMedium",    settings.DownloadAlbumArtMedium);
+			SettingsManager.SaveConfig("config", "downloadAlbumArtLarge",     settings.DownloadAlbumArtLarge);
+			SettingsManager.SaveConfig("config", "downloadAlbumArtHuge",      settings.DownloadAlbumArtHuge);
+			SettingsManager.SaveConfig("config", "submitSongs",               settings.SubmitSongs);
+			SettingsManager.SaveConfig("config", "oauthSecret",               settings.OAuthSecret);
+			SettingsManager.SaveConfig("config", "oauthToken",                settings.OAuthToken);
+			SettingsManager.SaveConfig("config", "currentVisualizer",         settings.CurrentVisualizer);
 
-			xmlWriter.WriteStartElement("configSections");
-			xmlWriter.WriteWhitespace("\n        ");
-			xmlWriter.WriteStartElement("sectionGroup");
-			xmlWriter.WriteStartAttribute("name");
-			xmlWriter.WriteString("userSettings");
-			xmlWriter.WriteEndAttribute();
+			SettingsManager.SaveTracks(settings.FileTracks, "files");
+			SettingsManager.SaveSources(settings.Sources, "sources");
+			SettingsManager.SaveTrackReferences(settings.HistoryTracks, "history", new string[] { "lastPlayed" });
+			SettingsManager.SaveTrackReferences(settings.QueueTracks, "queue", new string[] { "number" });
+			SettingsManager.SaveTracks(settings.RadioTracks, "radio");
 
-			xmlWriter.WriteWhitespace("\n            ");
-			xmlWriter.WriteStartElement("section");
-			xmlWriter.WriteStartAttribute("name");
-			xmlWriter.WriteString("Stoffi.Properties.Settings");
-			xmlWriter.WriteEndAttribute();
-			xmlWriter.WriteStartAttribute("type");
-			xmlWriter.WriteString("System.Configuration.ClientSettingsSection, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
-			xmlWriter.WriteEndAttribute();
-			xmlWriter.WriteStartAttribute("allowExeDefinition");
-			xmlWriter.WriteString("MachineToLocalUser");
-			xmlWriter.WriteEndAttribute();
-			xmlWriter.WriteStartAttribute("requirePermission");
-			xmlWriter.WriteString("false");
-			xmlWriter.WriteEndAttribute();
-			xmlWriter.WriteEndElement();
+			SettingsManager.SavePlaylists(settings.Playlists, "playlists");
+			SettingsManager.SaveCloudIdentities(settings.CloudIdentities, "cloudIdentities");
+			SettingsManager.SaveMetadata(settings.PluginSettings, "pluginData");
+			SettingsManager.SaveShortcutProfiles(settings.ShortcutProfiles, "shortcutProfiles");
+			var currShortcut = from x in settings.ShortcutProfiles where x.Name == settings.CurrentShortcutProfile select x;
+			var currShortcutID = SettingsManager.GetID<KeyboardShortcutProfile>("shortcutProfiles", currShortcut.First(), settings);
+			SettingsManager.SaveConfig("config", "currentShortcutProfile", SettingsManager.DBEncode(currShortcutID));
 
-			xmlWriter.WriteWhitespace("\n        ");
-			xmlWriter.WriteEndElement();
+			SettingsManager.SaveEqualizerProfiles(settings.EqualizerProfiles, "equalizerProfiles");
+			var currEqID = SettingsManager.GetID<EqualizerProfile>("equalizerProfiles", settings.CurrentEqualizerProfile, settings);
+			SettingsManager.SaveConfig("config", "currentEqualizerProfile", SettingsManager.DBEncode(currEqID));
 
-			xmlWriter.WriteWhitespace("\n    ");
-			xmlWriter.WriteEndElement();
+			SettingsManager.SaveListConfiguration(settings.SourceListConfig,     "listConfigurations");
+			SettingsManager.SaveConfig("config", "sourceListConfig",             SettingsManager.DBEncode(db.LastID("listConfigurations")));
+			SettingsManager.SaveListConfiguration(settings.YouTubeListConfig,    "listConfigurations");
+			SettingsManager.SaveConfig("config", "youtubeListConfig",            SettingsManager.DBEncode(db.LastID("listConfigurations")));
+			SettingsManager.SaveListConfiguration(settings.SoundCloudListConfig, "listConfigurations");
+			SettingsManager.SaveConfig("config", "soundCloudListConfig",         SettingsManager.DBEncode(db.LastID("listConfigurations")));
+			SettingsManager.SaveListConfiguration(settings.JamendoListConfig,    "listConfigurations");
+			SettingsManager.SaveConfig("config", "jamendoListConfig",            SettingsManager.DBEncode(db.LastID("listConfigurations")));
+			SettingsManager.SaveListConfiguration(settings.FileListConfig,       "listConfigurations");
+			SettingsManager.SaveConfig("config", "fileListConfig",               SettingsManager.DBEncode(db.LastID("listConfigurations")));
+			SettingsManager.SaveListConfiguration(settings.RadioListConfig,      "listConfigurations");
+			SettingsManager.SaveConfig("config", "radioListConfig",              SettingsManager.DBEncode(db.LastID("listConfigurations")));
+			SettingsManager.SaveListConfiguration(settings.DiscListConfig,       "listConfigurations");
+			SettingsManager.SaveConfig("config", "discListConfig",               SettingsManager.DBEncode(db.LastID("listConfigurations")));
+			SettingsManager.SaveListConfiguration(settings.QueueListConfig,      "listConfigurations");
+			SettingsManager.SaveConfig("config", "queueListConfig",              SettingsManager.DBEncode(db.LastID("listConfigurations")));
+			SettingsManager.SaveListConfiguration(settings.HistoryListConfig,    "listConfigurations");
+			SettingsManager.SaveConfig("config", "historyListConfig",            SettingsManager.DBEncode(db.LastID("listConfigurations")));
+			SettingsManager.SaveListConfiguration(settings.PluginListConfig,     "listConfigurations");
+			SettingsManager.SaveConfig("config", "pluginListConfig",             SettingsManager.DBEncode(db.LastID("listConfigurations")));
 
+			SettingsManager.SaveConfig("config", "currentTrack", settings.CurrentTrack == null ? "" : settings.CurrentTrack.Path);
 
-			xmlWriter.WriteWhitespace("\n    ");
-			xmlWriter.WriteStartElement("userSettings");
-			xmlWriter.WriteWhitespace("\n        ");
-			xmlWriter.WriteStartElement("Stoffi.Properties.Settings");
-
-			WriteSetting(xmlWriter, "WinWidth", 3, settings.WinWidth);
-			WriteSetting(xmlWriter, "WinHeight", 3, settings.WinHeight);
-			WriteSetting(xmlWriter, "WinTop", 3, settings.WinTop);
-			WriteSetting(xmlWriter, "WinLeft", 3, settings.WinLeft);
-			WriteSetting(xmlWriter, "WinState", 3, settings.WinState);
-			WriteSetting(xmlWriter, "EqualizerHeight", 3, settings.EqualizerHeight);
-			WriteSetting(xmlWriter, "EqualizerWidth", 3, settings.EqualizerWidth);
-			WriteSetting(xmlWriter, "EqualizerLeft", 3, settings.EqualizerLeft);
-			WriteSetting(xmlWriter, "EqualizerTop", 3, settings.EqualizerTop);
-			WriteSetting(xmlWriter, "CurrentSelectedNavigation", 3, settings.CurrentSelectedNavigation);
-			WriteSetting(xmlWriter, "NavigationPaneWidth", 3, settings.NavigationPaneWidth);
-			WriteSetting(xmlWriter, "DetailsPaneHeight", 3, settings.DetailsPaneHeight);
-			WriteSetting(xmlWriter, "DetailsPaneVisibile", 3, settings.DetailsPaneVisible);
-			WriteSetting(xmlWriter, "MenuBarVisible", 3, settings.MenuBarVisible);
-			WriteSetting(xmlWriter, "Language", 3, settings.Language);
-			WriteSetting<ViewDetailsConfig>(xmlWriter, "SourceListConfig", "Xml", 3, settings.SourceListConfig);
-			WriteSetting<List<SourceData>>(xmlWriter, "Sources", "Xml", 3, settings.Sources);
-			WriteSetting<ViewDetailsConfig>(xmlWriter, "PluginListConfig", "Xml", 3, settings.PluginListConfig);
-			WriteSetting<ViewDetailsConfig>(xmlWriter, "HistoryListConfig", "Xml", 3, settings.HistoryListConfig);
-			WriteSetting<List<TrackData>>(xmlWriter, "HistoryTracks", "Xml", 3, settings.HistoryTracks);
-			WriteSetting<ViewDetailsConfig>(xmlWriter, "FileListConfig", "Xml", 3, settings.FileListConfig);
-			WriteSetting<List<TrackData>>(xmlWriter, "FileTracks", "Xml", 3, settings.FileTracks);
-			WriteSetting<ViewDetailsConfig>(xmlWriter, "RadioListConfig", "Xml", 3, settings.RadioListConfig);
-			WriteSetting<List<TrackData>>(xmlWriter, "RadioTracks", "Xml", 3, settings.RadioTracks);
-			WriteSetting<ViewDetailsConfig>(xmlWriter, "DiscListConfig", "Xml", 3, settings.DiscListConfig);
-			WriteSetting<ViewDetailsConfig>(xmlWriter, "QueueListConfig", "Xml", 3, settings.QueueListConfig);
-			WriteSetting<List<TrackData>>(xmlWriter, "QueueTracks", "Xml", 3, settings.QueueTracks);
-			WriteSetting<ViewDetailsConfig>(xmlWriter, "YouTubeListConfig", "Xml", 3, settings.YouTubeListConfig);
-			WriteSetting<ViewDetailsConfig>(xmlWriter, "SoundCloudListConfig", "Xml", 3, settings.SoundCloudListConfig);
-			WriteSetting(xmlWriter, "ID", 3, settings.ID);
-			WriteSetting(xmlWriter, "UpgradePolicy", 3, settings.UpgradePolicy);
-			WriteSetting(xmlWriter, "SearchPolicy", 3, settings.SearchPolicy);
-			WriteSetting(xmlWriter, "OpenAddPolicy", 3, settings.OpenAddPolicy);
-			WriteSetting(xmlWriter, "OpenPlayPolicy", 3, settings.OpenPlayPolicy);
-			WriteSetting(xmlWriter, "MinimizeToTray", 3, settings.MinimizeToTray);
-			WriteSetting(xmlWriter, "ShowOSD", 3, settings.ShowOSD);
-			WriteSetting(xmlWriter, "PauseWhenLocked", 3, settings.PauseWhenLocked);
-			WriteSetting(xmlWriter, "PauseWhenSongEnds", 3, settings.PauseWhenSongEnds);
-			WriteSetting(xmlWriter, "CurrentShortcutProfile", 3, settings.CurrentShortcutProfile);
-			WriteSetting<List<KeyboardShortcutProfile>>(xmlWriter, "ShortcutProfiles", "Xml", 3, settings.ShortcutProfiles);
-			WriteSetting<List<PluginSettings>>(xmlWriter, "PluginSettings", "Xml", 3, settings.PluginSettings);
-			WriteSetting(xmlWriter, "YouTubeFilter", 3, settings.YouTubeFilter);
-			WriteSetting(xmlWriter, "YouTubeQuality", 3, settings.YouTubeQuality);
-			WriteSetting(xmlWriter, "CurrentActiveNavigation", 3, settings.CurrentActiveNavigation);
-			WriteSetting<TrackData>(xmlWriter, "CurrentTrack", "Xml", 3, settings.CurrentTrack);
-			WriteSetting<EqualizerProfile>(xmlWriter, "CurrentEqualizerProfile", "Xml", 3, settings.CurrentEqualizerProfile);
-			WriteSetting<List<EqualizerProfile>>(xmlWriter, "EqualizerProfiles", "Xml", 3, settings.EqualizerProfiles);
-			WriteSetting(xmlWriter, "HistoryIndex", 3, settings.HistoryIndex);
-			WriteSetting(xmlWriter, "Shuffle", 3, settings.Shuffle);
-			WriteSetting(xmlWriter, "Repeat", 3, settings.Repeat);
-			WriteSetting(xmlWriter, "Volume", 3, settings.Volume);
-			WriteSetting(xmlWriter, "Seek", 3, settings.Seek);
-			WriteSetting(xmlWriter, "MediaState", 3, settings.MediaState);
-			WriteSetting<List<CloudIdentity>>(xmlWriter, "CloudIdentities", "Xml", 3, settings.CloudIdentities);
-			WriteSetting(xmlWriter, "SubmitSongs", 3, settings.SubmitSongs);
-			WriteSetting<Dictionary<string, Tuple<string, string>>>(xmlWriter, "ListenBuffer", "Xml", 3, settings.ListenBuffer);
-			WriteSetting(xmlWriter, "FirstRun", 3, settings.FirstRun);
-			WriteSetting(xmlWriter, "UpgradeCheck", 3, settings.UpgradeCheck);
-			WriteSetting<List<PlaylistData>>(xmlWriter, "Playlists", "Xml", 3, settings.Playlists);
-			WriteSetting(xmlWriter, "OAuthToken", 3, settings.OAuthToken);
-			WriteSetting(xmlWriter, "OAuthSecret", 3, settings.OAuthSecret);
-			WriteSetting(xmlWriter, "CurrentVisualizer", 3, settings.CurrentVisualizer);
-
-			xmlWriter.WriteWhitespace("\n        ");
-			xmlWriter.WriteEndElement();
-			xmlWriter.WriteWhitespace("\n    ");
-			xmlWriter.WriteEndElement();
-			xmlWriter.WriteWhitespace("\n");
-			xmlWriter.WriteEndElement();
-			xmlWriter.WriteEndDocument();
 			U.L(LogLevel.Debug, "Migrator", "Write done");
-			xmlWriter.Close();
-		}
-
-		/// <summary>
-		/// Writes a settings to the XML settings file
-		/// </summary>
-		/// <typeparam name="T">The type of the settings</typeparam>
-		/// <param name="xmlWriter">The XmlWriter</param>
-		/// <param name="setting">The name of the setting</param>
-		/// <param name="serializeAs">A string describing how the setting is serialized</param>
-		/// <param name="indent">The number of spaces used for indentation</param>
-		/// <param name="value">The value</param>
-		private void WriteSetting<T>(XmlWriter xmlWriter, String setting, String serializeAs, int indent, T value)
-		{
-			String indentString = "";
-			for (int i = 0; i < indent; i++)
-				indentString += "    ";
-
-			xmlWriter.WriteWhitespace("\n" + indentString);
-			xmlWriter.WriteStartElement("setting");
-			xmlWriter.WriteStartAttribute("name");
-			xmlWriter.WriteString(setting);
-			xmlWriter.WriteEndAttribute();
-			xmlWriter.WriteStartAttribute("serializeAs");
-			xmlWriter.WriteString(serializeAs);
-			xmlWriter.WriteEndAttribute();
-
-			xmlWriter.WriteWhitespace("\n" + indentString + "    ");
-			xmlWriter.WriteStartElement("value");
-
-			if (value != null)
-			{
-				XmlSerializer ser = new XmlSerializer(typeof(T));
-				ser.Serialize(xmlWriter, value);
-			}
-
-			xmlWriter.WriteEndElement();
-
-			xmlWriter.WriteWhitespace("\n" + indentString);
-			xmlWriter.WriteEndElement();
 		}
 
 		/// <summary>
@@ -680,31 +679,6 @@ namespace Stoffi.Tools.Migrator
 				U.L(LogLevel.Error, "Migrator", "Could not read "+typeof(T)+": "+e.Message);
 				return (T)(null as object);
 			}
-		}
-
-		private void WriteSetting(XmlWriter xmlWriter, String setting, int indent, String value)
-		{
-			if (value == "" || value == null) return;
-			String indentString = "";
-			for (int i = 0; i < indent; i++)
-				indentString += "    ";
-
-			xmlWriter.WriteWhitespace("\n" + indentString);
-			xmlWriter.WriteStartElement("setting");
-			xmlWriter.WriteStartAttribute("name");
-			xmlWriter.WriteString(setting);
-			xmlWriter.WriteEndAttribute();
-			xmlWriter.WriteStartAttribute("serializeAs");
-			xmlWriter.WriteString("String");
-			xmlWriter.WriteEndAttribute();
-
-			xmlWriter.WriteWhitespace("\n" + indentString + "    ");
-			xmlWriter.WriteStartElement("value");
-			xmlWriter.WriteString(value);
-			xmlWriter.WriteEndElement();
-
-			xmlWriter.WriteWhitespace("\n" + indentString);
-			xmlWriter.WriteEndElement();
 		}
 
         #endregion
@@ -1602,6 +1576,7 @@ namespace Stoffi.Tools.Migrator
 		public List<TrackData> QueueTracks { get; set; }
 		public ViewDetailsConfig YouTubeListConfig { get; set; }
 		public ViewDetailsConfig SoundCloudListConfig { get; set; }
+		public ViewDetailsConfig JamendoListConfig { get; set; }
 		public String ID { get; set; }
 		public String UpgradePolicy { get; set; }
 		public String SearchPolicy { get; set; }
@@ -1628,15 +1603,27 @@ namespace Stoffi.Tools.Migrator
 		public String MediaState { get; set; }
 		public List<CloudIdentity> CloudIdentities { get; set; }
 		public String SubmitSongs { get; set; }
-		public System.Collections.Generic.Dictionary<string, System.Tuple<string, string>> ListenBuffer { get; set; }
+		public BufferDict ListenBuffer { get; set; }
 		public String FirstRun { get; set; }
 		public String UpgradeCheck { get; set; }
 		public List<PlaylistData> Playlists { get; set; }
 		public String OAuthToken { get; set; }
 		public String OAuthSecret { get; set; }
 		public String CurrentVisualizer { get; set; }
+		public String FastStart { get; set; }
+		public String DownloadAlbumArt { get; set; }
+		public String DownloadAlbumArtSmall { get; set; }
+		public String DownloadAlbumArtMedium { get; set; }
+		public String DownloadAlbumArtLarge { get; set; }
+		public String DownloadAlbumArtHuge { get; set; }
 
 		#endregion
+	}
+
+	public class BufferDict
+	{
+		public string Key { get; set; }
+		public List<string> Value { get; set; }
 	}
 
     /// <summary>

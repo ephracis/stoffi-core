@@ -34,6 +34,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using Microsoft.Win32;
+using Stoffi.Tools.Migrator;
 
 namespace Stoffi
 {
@@ -57,8 +58,8 @@ namespace Stoffi
 		public MainWindow()
 		{
 			InitializeComponent();
-			inFile = @"..\..\user2.config";
-			outFile = @"..\..\user.config";
+			inFile = @"..\..\user.config";
+			outFile = @"..\..\settings.s3db";
 			SettingsFileLabel.Content = inFile;
 		}
 

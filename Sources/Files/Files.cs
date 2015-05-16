@@ -360,7 +360,6 @@ namespace Stoffi.Core.Sources
 				{
 					Data = path,
 					Type = SourceType.File,
-					Icon = "FileAudio",
 					Include = true
 				};
 			}
@@ -370,7 +369,6 @@ namespace Stoffi.Core.Sources
 				{
 					Data = path,
 					Type = SourceType.Folder,
-					Icon = "Folder",
 					Include = true
 				};
 			}
@@ -380,7 +378,6 @@ namespace Stoffi.Core.Sources
 				{
 					Data = path,
 					Type = SourceType.Library,
-					Icon = "Library",
 					Include = true
 				};
 			}
@@ -496,7 +493,6 @@ namespace Stoffi.Core.Sources
 								s.Automatic = true;
 								s.Type = SourceType.Library;
 								s.Include = true;
-								s.Icon = "pack://application:,,,/Platform/Windows 7/GUI/Images/Icons/Library.ico";
 								AddSource(s);
 							}
 						}
@@ -980,7 +976,6 @@ namespace Stoffi.Core.Sources
 				Files.AddSource (new Location {
 					Data = path,
 					Ignore = true,
-					Icon = isFile ? "FileAudio" : "Folder",
 					Type = isFile ? SourceType.File : SourceType.Folder
 				});
 			}
