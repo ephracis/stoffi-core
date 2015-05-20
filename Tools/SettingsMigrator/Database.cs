@@ -33,8 +33,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 
-//using System.Data.SQLite;
-using Mono.Data.Sqlite;
+using System.Data.SQLite;
+//using Mono.Data.Sqlite;
 
 namespace Stoffi.Tools.Migrator
 {
@@ -45,16 +45,16 @@ namespace Stoffi.Tools.Migrator
 	{
 		#region Members
 		private string dbConnection;
-		private SqliteConnection cnn;
+		private SQLiteConnection cnn;
 		#endregion
 
 		#region Constructor
 		public Database(string filename)
 		{
 			if (!File.Exists(filename))
-				SqliteConnection.CreateFile(filename);
-			dbConnection = "uri=file:settings.s3db";
-			cnn = new SqliteConnection(dbConnection);
+				SQLiteConnection.CreateFile(filename);
+			dbConnection = "uri=file:"+filename;
+			cnn = new SQLiteConnection(dbConnection);
 			cnn.Open();
 		}
 		public static string[] Split(string source, char separator)
@@ -111,7 +111,8 @@ namespace Stoffi.Tools.Migrator
 		~Database()
 		{
 			if (cnn != null)
-				cnn.Close();
+				try { cnn.Close(); }
+				catch { }
 		}
 		#endregion
 
@@ -122,7 +123,7 @@ namespace Stoffi.Tools.Migrator
 			DataTable dt = new DataTable();
 			try
 			{
-				var cmd = new SqliteCommand(cnn);
+				var cmd = new SQLiteCommand(cnn);
 				cmd.CommandText = sql;
 				var reader = cmd.ExecuteReader();
 				dt.Load(reader);
@@ -144,7 +145,7 @@ namespace Stoffi.Tools.Migrator
 			{
 				try
 				{
-					var cmd = new SqliteCommand(cnn);
+					var cmd = new SQLiteCommand(cnn);
 					cmd.CommandText = sql;
 					var rowsUpdated = cmd.ExecuteNonQuery();
 					return rowsUpdated;
@@ -162,7 +163,7 @@ namespace Stoffi.Tools.Migrator
 		{
 			try
 			{
-				var cmd = new SqliteCommand(cnn);
+				var cmd = new SQLiteCommand(cnn);
 				cmd.CommandText = sql;
 				var value = cmd.ExecuteScalar();
 				if (value != null)
@@ -186,6 +187,21 @@ namespace Stoffi.Tools.Migrator
 			var columns = String.Join(", ", from d in data select d.Key);
 			var values = String.Join(", ", from d in data select d.Value);
 			return ExecuteNonQuery(String.Format("insert into {0}({1}) values({2});", table, columns, values));
+		}
+
+		public int BulkInsert(string table, IEnumerable<Dictionary<string, string>> data)
+		{
+			if (data.Count() == 0)
+				return 0;
+			
+			var columns = String.Join(", ", from d in data.ElementAt(0) select d.Key);
+			List<string> rows = new List<string>();
+			foreach (var d in data)
+			{
+				rows.Add("("+String.Join(", ", from x in d select x.Value)+")");
+			}
+			var values = String.Join(", ", rows);
+			return ExecuteNonQuery(String.Format("insert into {0}({1}) values {2};", table, columns, values));
 		}
 
 		public int LastID(string table)
@@ -252,7 +268,7 @@ namespace Stoffi.Tools.Migrator
 	public static partial class SettingsManager
 	{
 		#region Members
-		private static Database db;
+		public static Database db;
 		private static object saveToDatabaseLock = new object();
 		private static object saveLock = new object();
 		#endregion
@@ -264,7 +280,6 @@ namespace Stoffi.Tools.Migrator
 		/// </summary>
 		static SettingsManager()
 		{
-			InitializeDatabase();
 		}
 
 		#endregion
@@ -280,17 +295,17 @@ namespace Stoffi.Tools.Migrator
 		/// </summary>
 		/// <returns>The string representation.</returns>
 		/// <param name="repeat">Repeat state.</param>
-		public static string RepeatToString(RepeatState repeat)
+		public static string RepeatToString(string repeat)
 		{
 			switch (repeat)
 			{
-				case RepeatState.NoRepeat:
+				case "NoRepeat":
 					return "off";
 
-				case RepeatState.RepeatAll:
+				case "RepeatAll":
 					return "all";
 
-				case RepeatState.RepeatOne:
+				case "RepeatOne":
 					return "one";
 			}
 			return "off";
@@ -322,9 +337,9 @@ namespace Stoffi.Tools.Migrator
 		/// </summary>
 		/// <returns>The string representation.</returns>
 		/// <param name="shuffle">Shuffle state.</param>
-		public static string ShuffleToString(bool shuffle)
+		public static string ShuffleToString(string shuffle)
 		{
-			return shuffle ? "random" : "off";
+			return !String.IsNullOrWhiteSpace(shuffle) && shuffle.ToLower() == "true" ? "random" : "off";
 		}
 
 		/// <summary>
@@ -342,16 +357,16 @@ namespace Stoffi.Tools.Migrator
 		/// </summary>
 		/// <returns>The string representation.</returns>
 		/// <param name="mediaState">Media state.</param>
-		public static string MediaStateToString(MediaState mediaState)
+		public static string MediaStateToString(string mediaState)
 		{
 			switch (mediaState)
 			{
-				case MediaState.Paused:
-				case MediaState.Ended:
-				case MediaState.Stopped:
+				case "Paused":
+				case "Ended":
+				case "Stopped":
 					return "paused";
 
-				case MediaState.Playing:
+				case "Playing":
 					return "playing";
 			}
 			return "paused";
@@ -372,17 +387,17 @@ namespace Stoffi.Tools.Migrator
 		/// </summary>
 		/// <returns>The string representation.</returns>
 		/// <param name="upgrade">Upgrade policy.</param>
-		public static string UpgradeToString(UpgradePolicy upgrade)
+		public static string UpgradeToString(string upgrade)
 		{
 			switch (upgrade)
 			{
-				case UpgradePolicy.Automatic:
+				case "Automatic":
 					return "auto";
 
-				case UpgradePolicy.Manual:
+				case "Manual":
 					return "manual";
 
-				case UpgradePolicy.Notify:
+				case "Notify":
 					return "notify";
 			}
 			return "auto";
@@ -414,17 +429,17 @@ namespace Stoffi.Tools.Migrator
 		/// </summary>
 		/// <returns>The string representation.</returns>
 		/// <param name="search">Search policy.</param>
-		public static string SearchToString(SearchPolicy search)
+		public static string SearchToString(string search)
 		{
 			switch (search)
 			{
-				case SearchPolicy.Global:
+				case "Global":
 					return "global";
 
-				case SearchPolicy.Individual:
+				case "Individual":
 					return "individual";
 
-				case SearchPolicy.Partial:
+				case "Partial":
 					return "partial";
 			}
 			return "individual";
@@ -456,17 +471,17 @@ namespace Stoffi.Tools.Migrator
 		/// </summary>
 		/// <returns>The string representation.</returns>
 		/// <param name="openAdd">OpenAdd policy.</param>
-		public static string OpenAddToString(OpenAddPolicy openAdd)
+		public static string OpenAddToString(string openAdd)
 		{
 			switch (openAdd)
 			{
-				case OpenAddPolicy.DoNotAdd:
+				case "DoNotAdd":
 					return "none";
 
-				case OpenAddPolicy.Library:
+				case "Library":
 					return "library";
 
-				case OpenAddPolicy.LibraryAndPlaylist:
+				case "LibraryAndPlaylist":
 					return "playlist";
 			}
 			return "library";
@@ -498,20 +513,20 @@ namespace Stoffi.Tools.Migrator
 		/// </summary>
 		/// <returns>The string representation.</returns>
 		/// <param name="openPlay">OpenPlay policy.</param>
-		public static string OpenPlayToString(OpenPlayPolicy openPlay)
+		public static string OpenPlayToString(string openPlay)
 		{
 			switch (openPlay)
 			{
-				case OpenPlayPolicy.BackOfQueue:
+				case "BackOfQueue":
 					return "back";
 
-				case OpenPlayPolicy.DoNotPlay:
+				case "DoNotPlay":
 					return "none";
 
-				case OpenPlayPolicy.FrontOfQueue:
+				case "FrontOfQueue":
 					return "front";
 
-				case OpenPlayPolicy.Play:
+				case "Play":
 					return "play";
 			}
 			return "back";
@@ -655,20 +670,17 @@ namespace Stoffi.Tools.Migrator
 		/// Initializes the database connection.
 		/// </summary>
 		/// <param name="reset">If true the database file will be reset</param>
-		public static void InitializeDatabase(bool reset = false)
+		public static void InitializeDatabase(string filename, bool reset = false)
 		{
 			var folder = Path.GetDirectoryName(U.FullPath);
 
 			if (!Directory.Exists(folder))
 				Directory.CreateDirectory(folder);
 
-			var filename = "settings.s3db";
-			var path = Path.Combine(folder, filename);
+			if (reset && File.Exists(filename))
+				File.Delete(filename);
 
-			if (reset && File.Exists(path))
-				File.Delete(path);
-
-			db = new Database(path);
+			db = new Database(filename);
 			CreateDatabase();
 		}
 
@@ -682,7 +694,7 @@ namespace Stoffi.Tools.Migrator
 			db.CreateTable("cloudLinks",
 				new string[] { "provider", "picture", "names", "url", "connectUrl", "error" },
 				new string[] { "cloudID", "connected", "canShare", "doShare", "canListen", "doListen", "canDonate", "doDonate", "canCreatePlaylist", "doCreatePlaylist", "identity" });
-			db.CreateTable("cloudIdentities", null, new string[] { "user", "configuration", "device", "synchronizeConfig", "synchronizePlaylists", "synchronizeQueue", "synchronizeFiles" });
+			db.CreateTable("cloudIdentities", null, new string[] { "user", "configuration", "device", "synchronize", "synchronizeConfig", "synchronizePlaylists", "synchronizeQueue", "synchronizeFiles" });
 
 			db.CreateTable("shortcuts", new string[] { "name", "category", "keys", "profile" }, new string[] { "global" });
 			db.CreateTable("shortcutProfiles", new string[] { "name", "title" }, new string[] { "protected" });
@@ -690,12 +702,12 @@ namespace Stoffi.Tools.Migrator
 			db.CreateTable("equalizerProfiles", new string[] { "name", "bands" }, new string[] { "protected", "echo" });
 
 			db.CreateTable("files",
-				new string[] { "path", "title", "album", "artist", "genre", "url", "artUrl", "originalArtUrl", "source", "codecs" },
+				new string[] { "path", "title", "album", "artist", "genre", "url", "artUrl", "originalArtUrl", "source", "codecs", "grp" },
 				new string[] { "year", "bitrate", "track", "channels", "number", "lastWrite", "lastPlayed", "userPlayCount", "globalPlayCount", "sampleRate", "processed" },
 				new string[] { "length" }
 			);
 			db.CreateTable("radio",
-				new string[] { "path", "title", "album", "artist", "genre", "url", "artUrl", "originalArtUrl", "source", "codecs" },
+				new string[] { "path", "title", "album", "artist", "genre", "url", "artUrl", "originalArtUrl", "source", "codecs", "grp" },
 				new string[] { "year", "bitrate", "track", "channels", "number", "lastWrite", "lastPlayed", "userPlayCount", "globalPlayCount", "sampleRate", "processed" },
 				new string[] { "length" }
 			);
@@ -736,17 +748,17 @@ namespace Stoffi.Tools.Migrator
 		/// <param name="value">Value.</param>
 		public static void SaveConfig(string table, string key, string value)
 		{
-			var d = new Dictionary<string, string>();
-			d["key"] = DBEncode(key);
-			d["value"] = DBEncode(value);
+			var d = new Dictionary<string,string> ();
+			d ["key"] = DBEncode (key);
+			d ["value"] = DBEncode (value);
 
 			// check if key exists
-			var filter = String.Format("key='{0}'", key);
-			var result = db.Select(String.Format("select * from config where {0};", filter));
+			var filter = String.Format ("key='{0}'", key);
+			var result = db.Select(String.Format("select * from config where {0};", filter));	
 			if (result.Rows.Count > 0)
-				db.Update(table, d, filter);
+				db.Update (table, d, filter);
 			else
-				db.Insert(table, d);
+				db.Insert (table, d);
 		}
 
 		/// <summary>
@@ -760,8 +772,8 @@ namespace Stoffi.Tools.Migrator
 			{
 				try
 				{
-					foreach (var track in tracks)
-						SaveTrack(track, table);
+					var data = (from t in tracks select CreateData(t)).ToList();
+					db.BulkInsert(table, data);
 					break;
 				}
 				catch (InvalidOperationException e) { } // collection was modified while trying to save
@@ -776,8 +788,8 @@ namespace Stoffi.Tools.Migrator
 		/// <param name="table">Database table.</param>
 		public static void SaveTrack(TrackData track, string table)
 		{
-			var data = CreateData(track);
-			db.Insert(table, data);
+			var data = CreateData (track);
+			db.Insert (table, data);
 		}
 
 		/// <summary>
@@ -789,7 +801,7 @@ namespace Stoffi.Tools.Migrator
 		public static void SaveTrackReferences(IEnumerable<TrackData> tracks, string table, string[] fieldsToCopy = null)
 		{
 			foreach (TrackData track in tracks)
-				SaveTrackReference(track, table, fieldsToCopy);
+				SaveTrackReference (track, table, fieldsToCopy);
 		}
 
 		/// <summary>
@@ -800,8 +812,8 @@ namespace Stoffi.Tools.Migrator
 		/// <param name="fieldsToCopy">The fields to copy into the table in addition to the path.</param>
 		public static void SaveTrackReference(TrackData track, string table, string[] fieldsToCopy = null)
 		{
-			var data = new Dictionary<string, string>();
-			data["path"] = DBEncode(track.Path);
+			var data = new Dictionary<string,string> ();
+			data ["path"] = DBEncode(track.Path);
 
 			if (fieldsToCopy != null)
 			{
@@ -809,18 +821,18 @@ namespace Stoffi.Tools.Migrator
 				{
 					switch (field)
 					{
-						case "lastPlayed":
-							data[field] = DBEncode(track.LastPlayed);
-							break;
+					case "lastPlayed":
+						data [field] = DBEncode (track.LastPlayed);
+						break;
 
-						case "number":
-							data[field] = DBEncode(track.Number);
-							break;
+					case "number":
+						data [field] = DBEncode (track.Number);
+						break;
 					}
 				}
 			}
 
-			db.Insert(table, data);
+			db.Insert (table, data);
 		}
 
 		/// <summary>
@@ -831,7 +843,7 @@ namespace Stoffi.Tools.Migrator
 		public static void SaveBookmarks(IList<Tuple<string, string, double>> bookmarks, string table)
 		{
 			foreach (var bookmark in bookmarks)
-				SaveBookmark(bookmark, table);
+				SaveBookmark (bookmark, table);
 		}
 
 		/// <summary>
@@ -841,11 +853,11 @@ namespace Stoffi.Tools.Migrator
 		/// <param name="table">Database table.</param>
 		public static void SaveBookmark(Tuple<string, string, double> bookmark, string table)
 		{
-			var data = new Dictionary<string, string>();
-			data["track"] = DBEncode(bookmark.Item1);
-			data["type"] = DBEncode(bookmark.Item2);
-			data["pos"] = DBEncode(bookmark.Item3);
-			db.Insert(table, data);
+			var data = new Dictionary<string,string> ();
+			data ["track"] = DBEncode (bookmark.Item1);
+			data ["type"] = DBEncode (bookmark.Item2);
+			data ["pos"] = DBEncode (bookmark.Item3);
+			db.Insert (table, data);
 		}
 
 		/// <summary>
@@ -856,7 +868,7 @@ namespace Stoffi.Tools.Migrator
 		public static void SaveListConfigurations(IEnumerable<ViewDetailsConfig> configs, string table)
 		{
 			foreach (var config in configs)
-				SaveListConfiguration(config, table);
+				SaveListConfiguration (config, table);
 		}
 
 		/// <summary>
@@ -866,12 +878,13 @@ namespace Stoffi.Tools.Migrator
 		/// <param name="table">Database table.</param>
 		public static void SaveListConfiguration(ViewDetailsConfig config, string table)
 		{
-			var data = CreateData(config);
-			SaveColumn(config.NumberColumn, "listColumns", -1);
-			data["numberColumn"] = DBEncode(db.LastID("listColumns"));
-			db.Insert(table, data);
-			var id = db.LastID(table);
-			SaveColumns(config.Columns, "listColumns", id);
+			if (config == null) return;
+			var data = CreateData (config);
+			SaveColumn (config.NumberColumn, "listColumns", -1);
+			data ["numberColumn"] = DBEncode (db.LastID ("listColumns"));
+			db.Insert (table, data);
+			var id = db.LastID (table);
+			SaveColumns (config.Columns, "listColumns", id);
 		}
 
 		/// <summary>
@@ -882,8 +895,11 @@ namespace Stoffi.Tools.Migrator
 		/// <param name="parentID">The ID of the config row.</param>
 		public static void SaveColumns(IEnumerable<ViewDetailsColumn> columns, string table, int parentID)
 		{
-			foreach (var column in columns)
-				SaveColumn(column, table, parentID);
+			var data = (from x in columns select CreateData(x)).ToList();
+			foreach (var x in data) {
+				x.Add("config", DBEncode(parentID));
+			}
+			db.BulkInsert(table, data);
 		}
 
 		/// <summary>
@@ -894,9 +910,9 @@ namespace Stoffi.Tools.Migrator
 		/// <param name="parentID">The ID of the config row.</param>
 		public static void SaveColumn(ViewDetailsColumn column, string table, int parentID)
 		{
-			var data = CreateData(column);
-			data["config"] = DBEncode(parentID);
-			db.Insert(table, data);
+			var data = CreateData (column);
+			data ["config"] = DBEncode (parentID);
+			db.Insert (table, data);
 		}
 
 		/// <summary>
@@ -907,7 +923,7 @@ namespace Stoffi.Tools.Migrator
 		public static void SaveShortcutProfiles(IEnumerable<KeyboardShortcutProfile> profiles, string table)
 		{
 			foreach (var profile in profiles)
-				SaveShortcutProfile(profile, table);
+				SaveShortcutProfile (profile, table);
 		}
 
 		/// <summary>
@@ -917,9 +933,9 @@ namespace Stoffi.Tools.Migrator
 		/// <param name="table">Database table.</param>
 		public static void SaveShortcutProfile(KeyboardShortcutProfile profile, string table)
 		{
-			var data = CreateData(profile);
-			db.Insert(table, data);
-			SaveShortcuts(profile.Shortcuts, "shortcuts", db.LastID(table));
+			var data = CreateData (profile);
+			db.Insert (table, data);
+			SaveShortcuts (profile.Shortcuts, "shortcuts", db.LastID(table));
 		}
 
 		/// <summary>
@@ -930,8 +946,9 @@ namespace Stoffi.Tools.Migrator
 		/// <param name="parentID">The ID of the profile row.</param>
 		public static void SaveShortcuts(IEnumerable<KeyboardShortcut> shortcuts, string table, int parentID)
 		{
-			foreach (var shortcut in shortcuts)
-				SaveShortcut(shortcut, table, parentID);
+			var data = (from x in shortcuts select CreateData(x)).ToList();
+			foreach (var x in data) { x["profile"] = DBEncode(parentID); }
+			db.BulkInsert(table, data);
 		}
 
 		/// <summary>
@@ -942,9 +959,9 @@ namespace Stoffi.Tools.Migrator
 		/// <param name="parentID">The ID of the profile row.</param>
 		public static void SaveShortcut(KeyboardShortcut shortcut, string table, int parentID)
 		{
-			var data = CreateData(shortcut);
-			data["profile"] = DBEncode(parentID);
-			db.Insert(table, data);
+			var data = CreateData (shortcut);
+			data ["profile"] = DBEncode (parentID);
+			db.Insert (table, data);
 		}
 
 		/// <summary>
@@ -955,7 +972,7 @@ namespace Stoffi.Tools.Migrator
 		public static void SaveEqualizerProfiles(IEnumerable<EqualizerProfile> profiles, string table)
 		{
 			foreach (var profile in profiles)
-				SaveEqualizerProfile(profile, table);
+				SaveEqualizerProfile (profile, table);
 		}
 
 		/// <summary>
@@ -965,8 +982,8 @@ namespace Stoffi.Tools.Migrator
 		/// <param name="table">Database table.</param>
 		public static void SaveEqualizerProfile(EqualizerProfile profile, string table)
 		{
-			var data = CreateData(profile);
-			db.Insert(table, data);
+			var data = CreateData (profile);
+			db.Insert (table, data);
 		}
 
 		/// <summary>
@@ -977,7 +994,7 @@ namespace Stoffi.Tools.Migrator
 		public static void SaveCloudIdentities(IEnumerable<CloudIdentity> identities, string table)
 		{
 			foreach (var identity in identities)
-				SaveCloudIdentity(identity, table);
+				SaveCloudIdentity (identity, table);
 		}
 
 		/// <summary>
@@ -987,9 +1004,9 @@ namespace Stoffi.Tools.Migrator
 		/// <param name="table">Database table.</param>
 		public static void SaveCloudIdentity(CloudIdentity identity, string table)
 		{
-			var data = CreateData(identity);
-			db.Insert(table, data);
-			SaveCloudLinks(identity.Links, "cloudLinks", db.LastID(table));
+			var data = CreateData (identity);
+			db.Insert (table, data);
+			SaveCloudLinks (identity.Links, "cloudLinks", db.LastID(table));
 		}
 
 		/// <summary>
@@ -1001,7 +1018,7 @@ namespace Stoffi.Tools.Migrator
 		public static void SaveCloudLinks(IEnumerable<Link> links, string table, int parentID)
 		{
 			foreach (var link in links)
-				SaveCloudLink(link, table, parentID);
+				SaveCloudLink (link, table, parentID);
 		}
 
 		/// <summary>
@@ -1012,9 +1029,9 @@ namespace Stoffi.Tools.Migrator
 		/// <param name="parentID">The ID of the cloud identity row.</param>
 		public static void SaveCloudLink(Link link, string table, int parentID)
 		{
-			var data = CreateData(link);
-			data["identity"] = DBEncode(parentID);
-			db.Insert(table, data);
+			var data = CreateData (link);
+			data ["identity"] = DBEncode (parentID);
+			db.Insert (table, data);
 		}
 
 		/// <summary>
@@ -1025,7 +1042,7 @@ namespace Stoffi.Tools.Migrator
 		public static void SaveMetadata(IEnumerable<PluginSettings> data, string table)
 		{
 			foreach (var d in data)
-				SaveMetadata(d, table);
+				SaveMetadata (d, table);
 		}
 
 		/// <summary>
@@ -1035,9 +1052,9 @@ namespace Stoffi.Tools.Migrator
 		/// <param name="table">Database table.</param>
 		public static void SaveMetadata(PluginSettings pluginData, string table)
 		{
-			var data = CreateData(pluginData);
-			db.Insert(table, data);
-			SavePluginSettings(pluginData.Settings, "pluginSettings", db.LastID(table));
+			var data = CreateData (pluginData);
+			db.Insert (table, data);
+			SavePluginSettings (pluginData.Settings, "pluginSettings", db.LastID(table));
 		}
 
 		/// <summary>
@@ -1049,7 +1066,7 @@ namespace Stoffi.Tools.Migrator
 		public static void SavePluginSettings(IEnumerable<Stoffi.Plugins.Setting> settings, string table, int parentID)
 		{
 			foreach (var setting in settings)
-				SavePluginSetting(setting, table, parentID);
+				SavePluginSetting (setting, table, parentID);
 		}
 
 		/// <summary>
@@ -1060,16 +1077,16 @@ namespace Stoffi.Tools.Migrator
 		/// <param name="parentID">The ID of the plugin data row.</param>
 		public static void SavePluginSetting(Stoffi.Plugins.Setting setting, string table, int parentID)
 		{
-			var data = CreateData(setting);
-			data["plugin"] = DBEncode(parentID);
-			db.Insert(table, data);
+			var data = CreateData (setting);
+			data ["plugin"] = DBEncode (parentID);
+			db.Insert (table, data);
 
 			var id = db.LastID(table);
 			foreach (var v in setting.PossibleValues)
 			{
-				data.Clear();
-				data["plugin"] = DBEncode(id);
-				data["value"] = DBEncode(v.ToString());
+				data.Clear ();
+				data ["plugin"] = DBEncode (id);
+				data ["value"] = DBEncode (v.ToString ());
 			}
 		}
 
@@ -1080,8 +1097,8 @@ namespace Stoffi.Tools.Migrator
 		/// <param name="table">Database table.</param>
 		public static void SaveSources(IEnumerable<SourceData> sources, string table)
 		{
-			foreach (var source in sources)
-				SaveSource(source, table);
+			var data = (from x in sources select CreateData(x)).ToList();
+			db.BulkInsert(table, data);
 		}
 
 		/// <summary>
@@ -1091,8 +1108,8 @@ namespace Stoffi.Tools.Migrator
 		/// <param name="table">Database table.</param>
 		public static void SaveSource(SourceData source, string table)
 		{
-			var data = CreateData(source);
-			db.Insert(table, data);
+			var data = CreateData (source);
+			db.Insert (table, data);
 		}
 
 		/// <summary>
@@ -1103,7 +1120,7 @@ namespace Stoffi.Tools.Migrator
 		public static void SavePlaylists(IEnumerable<PlaylistData> playlists, string table)
 		{
 			foreach (var playlist in playlists)
-				SavePlaylist(playlist, table);
+				SavePlaylist (playlist, table);
 		}
 
 		/// <summary>
@@ -1113,22 +1130,24 @@ namespace Stoffi.Tools.Migrator
 		/// <param name="table">Database table.</param>
 		public static void SavePlaylist(PlaylistData playlist, string table)
 		{
-			var data = CreateData(playlist);
-			db.Insert(table, data);
-			var rowid = db.LastID(table);
+			var data = CreateData (playlist);
+			db.Insert (table, data);
+			var rowid = db.LastID (table);
 
-			data.Clear();
-			SaveListConfiguration(playlist.ListConfig, "listConfigurations");
-			data["listConfig"] = DBEncode(db.LastID("listConfigurations"));
-			db.Update(table, data, String.Format("rowid={0}", rowid));
+			data.Clear ();
+			SaveListConfiguration (playlist.ListConfig, "listConfigurations");
+			data ["listConfig"] = DBEncode (db.LastID("listConfigurations"));
+			db.Update (table, data, String.Format("rowid={0}", rowid));
 
+			var d = new List<Dictionary<string, string>>();
 			foreach (var t in playlist.Tracks)
 			{
-				data.Clear();
-				data["path"] = DBEncode(t.Path);
-				data["playlist"] = DBEncode(rowid);
-				db.Insert("playlistTracks", data);
+				var x = new Dictionary<string, string>();
+				x ["path"] = DBEncode(t.Path);
+				x ["playlist"] = DBEncode (rowid);
+				d.Add(x);
 			}
+			db.BulkInsert("playlistTracks", d);
 		}
 
 		/// <summary>
@@ -1140,11 +1159,11 @@ namespace Stoffi.Tools.Migrator
 		{
 			foreach (var listen in buffer)
 			{
-				var data = new Dictionary<string, string>();
-				data["url"] = DBEncode(listen.Key);
-				data["method"] = DBEncode(listen.Value.Item1);
-				data["track"] = DBEncode(listen.Value.Item2);
-				db.Insert(table, data);
+				var data = new Dictionary<string,string> ();
+				data ["url"] = DBEncode (listen.Key);
+				data ["method"] = DBEncode (listen.Value.Item1);
+				data ["track"] = DBEncode (listen.Value.Item2);
+				db.Insert (table, data);
 			}
 		}
 
@@ -1158,7 +1177,7 @@ namespace Stoffi.Tools.Migrator
 		/// <returns>The data.</returns>
 		/// <param name="obj">Object.</param>
 		/// <typeparam name="T">The type of the object.</typeparam>
-		private static Dictionary<string, string> CreateData<T>(T obj)
+		public static Dictionary<string, string> CreateData<T>(T obj)
 		{
 			var data = new Dictionary<string, string>();
 
@@ -1172,6 +1191,7 @@ namespace Stoffi.Tools.Migrator
 				data["channels"] = DBEncode(track.Channels);
 				data["codecs"] = DBEncode(track.Codecs);
 				data["genre"] = DBEncode(track.Genre);
+				data["grp"] = DBEncode(track.Group);
 				data["lastPlayed"] = DBEncode(track.LastPlayed);
 				data["lastWrite"] = DBEncode(track.LastWrite);
 				data["length"] = DBEncode(track.Length);
@@ -1321,7 +1341,7 @@ namespace Stoffi.Tools.Migrator
 		/// </summary>
 		/// <returns>A string representation safe for database storage.</returns>
 		/// <param name="x">The value to store.</param>
-		private static string DBEncode(string x)
+		public static string DBEncode(string x)
 		{
 			x = x ?? "";
 			return String.Format("'{0}'", x.Replace("\'", "\'\'"));
@@ -1332,7 +1352,7 @@ namespace Stoffi.Tools.Migrator
 		/// </summary>
 		/// <returns>A string representation safe for database storage.</returns>
 		/// <param name="x">The value to store.</param>
-		private static string DBEncode(bool x)
+		public static string DBEncode(bool x)
 		{
 			return x ? "1" : "0";
 		}
@@ -1342,9 +1362,9 @@ namespace Stoffi.Tools.Migrator
 		/// </summary>
 		/// <returns>A string representation safe for database storage.</returns>
 		/// <param name="x">The value to store.</param>
-		private static string DBEncode(ulong x)
+		public static string DBEncode(ulong x)
 		{
-			return x.ToString("0", CultureInfo.GetCultureInfo("en-US"));
+			return x.ToString("0", CultureInfo.InvariantCulture);
 		}
 
 		/// <summary>
@@ -1352,9 +1372,9 @@ namespace Stoffi.Tools.Migrator
 		/// </summary>
 		/// <returns>A string representation safe for database storage.</returns>
 		/// <param name="x">The value to store.</param>
-		private static string DBEncode(long x)
+		public static string DBEncode(long x)
 		{
-			return x.ToString("0", CultureInfo.GetCultureInfo("en-US"));
+			return x.ToString("0", CultureInfo.InvariantCulture);
 		}
 
 		/// <summary>
@@ -1362,9 +1382,9 @@ namespace Stoffi.Tools.Migrator
 		/// </summary>
 		/// <returns>A string representation safe for database storage.</returns>
 		/// <param name="x">The value to store.</param>
-		private static string DBEncode(uint x)
+		public static string DBEncode(uint x)
 		{
-			return x.ToString("0", CultureInfo.GetCultureInfo("en-US"));
+			return x.ToString("0", CultureInfo.InvariantCulture);
 		}
 
 		/// <summary>
@@ -1372,9 +1392,9 @@ namespace Stoffi.Tools.Migrator
 		/// </summary>
 		/// <returns>A string representation safe for database storage.</returns>
 		/// <param name="x">The value to store.</param>
-		private static string DBEncode(int x)
+		public static string DBEncode(int x)
 		{
-			return x.ToString("0", CultureInfo.GetCultureInfo("en-US"));
+			return x.ToString("0", CultureInfo.InvariantCulture);
 		}
 
 		/// <summary>
@@ -1382,9 +1402,9 @@ namespace Stoffi.Tools.Migrator
 		/// </summary>
 		/// <returns>A string representation safe for database storage.</returns>
 		/// <param name="x">The value to store.</param>
-		private static string DBEncode(double x)
+		public static string DBEncode(double x)
 		{
-			return x.ToString("0.0000", CultureInfo.GetCultureInfo("en-US"));
+			return x.ToString("0.0000", CultureInfo.InvariantCulture);
 		}
 
 		/// <summary>
@@ -1392,7 +1412,7 @@ namespace Stoffi.Tools.Migrator
 		/// </summary>
 		/// <returns>A string representation safe for database storage.</returns>
 		/// <param name="x">The value to store.</param>
-		private static string DBEncode(DateTime x)
+		public static string DBEncode(DateTime x)
 		{
 			long l = 0;
 			try
@@ -1404,6 +1424,99 @@ namespace Stoffi.Tools.Migrator
 			{
 			}
 			return DBEncode(l);
+		}
+
+		#endregion
+
+		#region Select from database
+
+		/// <summary>
+		/// Get the specified object's rowid in a given table.
+		/// </summary>
+		/// <param name="table">Table.</param>
+		/// <param name="obj">Object to look for.</param>
+		/// <typeparam name="T">The type of the object.</typeparam>
+		/// <returns>The rowid if found, otherwise -1.</returns>
+		public static int GetID<T>(string table, T obj, NewSettings settings)
+		{
+			if (obj == null)
+				return -1;
+
+			DataTable result;
+			if (typeof(T) == typeof(ViewDetailsConfig))
+			{
+				var config = obj as ViewDetailsConfig;
+				var configKey = "";
+				if (config == settings.FileListConfig)
+					configKey = "fileListConfig";
+				else if (config == settings.QueueListConfig)
+					configKey = "queueListConfig";
+				else if (config == settings.HistoryListConfig)
+					configKey = "historyListConfig";
+				else if (config == settings.RadioListConfig)
+					configKey = "radioListConfig";
+				else if (config == settings.SoundCloudListConfig)
+					configKey = "soundCloudListConfig";
+				else if (config == settings.YouTubeListConfig)
+					configKey = "youTubeListConfig";
+				else if (config == settings.JamendoListConfig)
+					configKey = "jamendoListConfig";
+
+				if (configKey != "")
+				{
+					result = db.Select(String.Format("select value from config where key='{0}';", configKey));
+					if (result.Rows.Count > 0)
+						return Convert.ToInt32(result.Rows[0]["value"]);
+				}
+				else
+				{
+					foreach (var playlist in settings.Playlists)
+					{
+						if (config == playlist.ListConfig)
+						{
+							result = db.Select(String.Format("select listConfig from playlists where name='{0}' and cloudID={1};", playlist.Name, playlist.ID));
+							if (result.Rows.Count > 0)
+								return Convert.ToInt32(result.Rows[0]["listConfig"]);
+						}
+					}
+				}
+			}
+			else if (typeof(T) == typeof(TrackData))
+			{
+				var track = obj as TrackData;
+				result = db.Select(String.Format("select rowid from {0} where path='{1}';", table, track.Path));
+				if (result.Rows.Count > 0)
+					return Convert.ToInt32(result.Rows[0]["rowid"]);
+			}
+			else if (typeof(T) == typeof(EqualizerProfile))
+			{
+				var profile = obj as EqualizerProfile;
+				result = db.Select(String.Format("select rowid from {0} where name='{1}';", table, profile.Name));
+				if (result.Rows.Count > 0)
+					return Convert.ToInt32(result.Rows[0]["rowid"]);
+			}
+			else if (typeof(T) == typeof(KeyboardShortcutProfile))
+			{
+				var profile = obj as KeyboardShortcutProfile;
+				result = db.Select(String.Format("select rowid from {0} where name='{1}';", table, profile.Name));
+				if (result.Rows.Count > 0)
+					return Convert.ToInt32(result.Rows[0]["rowid"]);
+			}
+			else if (typeof(T) == typeof(PlaylistData))
+			{
+				var playlist = obj as PlaylistData;
+				result = db.Select(String.Format("select rowid from {0} where name='{1}' and cloudID = {2};", table, playlist.Name, playlist.ID));
+				if (result.Rows.Count > 0)
+					return Convert.ToInt32(result.Rows[0]["rowid"]);
+			}
+			else if (typeof(T) == typeof(SourceData))
+			{
+				var source = obj as SourceData;
+				result = db.Select(String.Format("select rowid from {0} where type='{1}' and data='{2}';", table, SourceTypeToString(source.Type), source.Data));
+				if (result.Rows.Count > 0)
+					return Convert.ToInt32(result.Rows[0]["rowid"]);
+			}
+			return -1;
 		}
 
 		#endregion

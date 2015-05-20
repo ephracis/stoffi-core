@@ -114,7 +114,30 @@ namespace Stoffi.Core.Sources
 		{ 
 			get { return data; }
 			set { SetProp<string> (ref data, value, "Data"); }
-		} 
+		}
+
+		/// <summary>
+		/// Gets the icon of the source location.
+		/// </summary>
+		/// <value>The icon.</value>
+		public new string Icon
+		{
+			get
+			{
+				switch (Type)
+				{
+					case SourceType.File:
+						return "fileaudio";
+
+					case SourceType.Folder:
+						return "folder";
+
+					case SourceType.Library:
+						return "library";
+				}
+				return "unsupported";
+			}
+		}
 
 		#endregion
 	}
