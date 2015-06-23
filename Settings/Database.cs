@@ -58,6 +58,7 @@ namespace Stoffi.Core.Settings
 		#region Constructor
 		public Database(string filename)
 		{
+			U.L(LogLevel.Information, "Database", "Initializing SQLite database");
 			if (!File.Exists(filename))
 				SQLiteConnection.CreateFile(filename);
 			dbConnection = "uri=file:settings.s3db";
