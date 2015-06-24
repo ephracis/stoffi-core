@@ -64,13 +64,45 @@ namespace Stoffi.Core.Sources.Radio
 		/// </summary>
 		public static void PopulateDefaults()
 		{
-			var t = new Thread (delegate() {
-				foreach (var s in sources)
-					s.FetchStations (Settings.Manager.RadioTracks);
-			});
-			t.Name = "Populate default radio stations";
-			t.Priority = ThreadPriority.BelowNormal;
-			t.Start ();
+			var threads = new List<Thread>();
+			var stationsCollection = new List<List<Track>>();
+			var sourceStack = new Stack<Base>(sources);
+			foreach (var source in sources)
+			{
+				var thread = new Thread(delegate()
+				{
+					var s = sourceStack.Pop();
+					var stations = s.FetchStations();
+					while (true)
+					{
+						try { stationsCollection.Add(stations); break; }
+						catch { Thread.Sleep(10); }
+					}
+				});
+				thread.Name = "Fetch radio stations from "+source.ToString();
+				thread.Priority = ThreadPriority.BelowNormal;
+				threads.Add(thread);
+			}
+
+			foreach (var thread in threads)
+				thread.Start();
+
+			new Thread(delegate()
+			{
+				foreach (var thread in threads)
+					thread.Join();
+				
+				U.GUIContext.Post(_ =>
+				{
+					foreach (var stations in stationsCollection)
+						foreach (var station in stations)
+							Settings.Manager.RadioTracks.Add(station);
+				}, null);
+			})
+			{
+				Name = "Forge fetched radio stations",
+				Priority = ThreadPriority.BelowNormal
+			}.Start();
 		}
 		#endregion
 

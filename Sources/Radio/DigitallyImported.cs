@@ -19,6 +19,7 @@
  ***/
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -52,11 +53,12 @@ namespace Stoffi.Core.Sources.Radio
 		/// Fill collection with DI.fm stations.
 		/// </summary>
 		/// <param name="stations">Station collection.</param>
-		public override void FetchStations(ObservableCollection<Track> stations)
+		public override List<Track> FetchStations()
 		{
+			var stations = new List<Track>();
 			try
 			{
-				string url = "http://listen."+domain+"/"+folder;
+				string url = "http://listen." + domain + "/" + folder;
 				var request = (HttpWebRequest)WebRequest.Create(url);
 				using (var response = (HttpWebResponse)request.GetResponse())
 				{
@@ -71,6 +73,7 @@ namespace Stoffi.Core.Sources.Radio
 			{
 				U.L(LogLevel.Warning, name, "Could not retrieve stations: " + e.Message);
 			}
+			return stations;
 		}
 
 		#endregion
@@ -82,7 +85,7 @@ namespace Stoffi.Core.Sources.Radio
 		/// </summary>
 		/// <param name="stations">Stations.</param>
 		/// <param name="json">Json data describing the stations.</param>
-		private void ParseStations(ObservableCollection<Track> stations, JToken json)
+		private void ParseStations(List<Track> stations, JToken json)
 		{
 			if (json.Type != JTokenType.Array)
 				throw new Exception ("JSON response should be an array but is " + json.Type.ToString ());
@@ -91,7 +94,10 @@ namespace Stoffi.Core.Sources.Radio
 			{
 				var station = ParseStation (channel);
 				if (station != null && !U.ContainsPath(stations, station.Path))
-					AddStation(name, station, stations);
+				{
+					U.L(LogLevel.Information, name, "Added radio station " + station.Path);
+					stations.Add(station);
+				}
 			}
 		}
 
@@ -113,7 +119,6 @@ namespace Stoffi.Core.Sources.Radio
 			station.Path = station.URL;
 			if (Playlists.Manager.IsSupported(station.Path))
 			{
-				U.L(LogLevel.Debug, name, "Resolving streaming URL from "+station.Path);
 				var playlists = Playlists.Manager.Parse(station.Path, false);
 				if (playlists == null || playlists.Count == 0 || playlists[0].Tracks.Count == 0)
 					throw new Exception("No streaming URLs found at " + station.Path);

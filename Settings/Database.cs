@@ -285,7 +285,7 @@ namespace Stoffi.Core.Settings
 			{
 				try
 				{
-					var trans = cnn.BeginTransaction(IsolationLevel.Serializable);
+					//var trans = cnn.BeginTransaction(IsolationLevel.Serializable);
 					foreach (var cmd in commands)
 					{
 						new SQLiteCommand(cnn)
@@ -293,7 +293,7 @@ namespace Stoffi.Core.Settings
 							CommandText = cmd
 						}.ExecuteNonQuery();
 					}
-					trans.Commit();
+					//trans.Commit();
 					lock (nonQueryLock) { commandInQueue = false; }
 					return;
 				}
@@ -2205,7 +2205,6 @@ namespace Stoffi.Core.Settings
 					break;
 				}
 			}
-			U.L(LogLevel.Debug, "Database", "Property "+property+" saved");
 		}
 
 		/// <summary>

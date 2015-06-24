@@ -19,6 +19,7 @@
  ***/
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -38,8 +39,9 @@ namespace Stoffi.Core.Sources.Radio
 		/// Fill collection with SomaFM stations.
 		/// </summary>
 		/// <param name="stations">Station collection.</param>
-		public override void FetchStations(ObservableCollection<Track> stations)
+		public override List<Track> FetchStations()
 		{
+			var stations = new List<Track>();
 			var stationGroup = "SomaFM";
 			try
 			{
@@ -57,7 +59,6 @@ namespace Stoffi.Core.Sources.Radio
 							{
 								xmlReader.MoveToAttribute("id");
 								var id = xmlReader.Value;
-								U.L(LogLevel.Debug, "SomaFM", "Adding SonaFM station "+id);
 								try
 								{
 									var station = new Track();
@@ -104,7 +105,6 @@ namespace Stoffi.Core.Sources.Radio
 												station.Path = station.URL;
 												if (Playlists.Manager.IsSupported(value))
 												{
-													U.L(LogLevel.Debug, "SomaFM", "Resolving streaming URL from "+value);
 													var playlists = Playlists.Manager.Parse(value, false);
 													if (playlists == null || playlists.Count == 0 || playlists[0].Tracks.Count == 0)
 														throw new Exception("No streaming URLs found at " + value);
@@ -123,7 +123,10 @@ namespace Stoffi.Core.Sources.Radio
 									}
 
 									if (!String.IsNullOrWhiteSpace(station.Path) && !U.ContainsPath(stations, station.Path))
-										AddStation("SomaFM", station, stations);
+									{
+										U.L(LogLevel.Information, "SomaFM", "Added radio station " + station.Path);
+										stations.Add(station);
+									}
 								}
 								catch (Exception e)
 								{
@@ -141,6 +144,7 @@ namespace Stoffi.Core.Sources.Radio
 			{
 				U.L(LogLevel.Warning, "SomaFM", "Could not retrieve SonaFM stations: " + e.Message);
 			}
+			return stations;
 		}
 	}
 }

@@ -339,12 +339,10 @@ namespace Stoffi.Core.Playlists
 		/// <returns>A list of playlists found at the path</returns>
 		public static List<Playlist> Parse(string path, bool resolveMetaData = true)
 		{
-			U.L (LogLevel.Debug, "Playlist", "Looking for a parser for " + path);
 			foreach (var parser in GetParsers (path))
 			{
 				try {
 					var playlists = parser.Read (path, resolveMetaData);
-					U.L (LogLevel.Debug, "Playlist", "Found parser: " + parser.GetType().Name);
 					return playlists;
 				}
 				catch (Exception e) {
