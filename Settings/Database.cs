@@ -340,7 +340,7 @@ namespace Stoffi.Core.Settings
 		static Manager()
 		{
 			U.L(LogLevel.Information, "Settings", "Initializing database");
-			InitializeDatabase(true);
+			InitializeDatabase();
 			U.L(LogLevel.Debug, "Settings", "Database is initialized");
 		}
 
