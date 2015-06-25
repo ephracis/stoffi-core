@@ -54,11 +54,9 @@ namespace Stoffi.Core.Playlists
 			{
 				if (path.StartsWith("http://") || path.StartsWith("https://"))
 				{
-					U.L(LogLevel.Debug, "Playlist parser", "Downloading from " + path);
 					var request = (HttpWebRequest)WebRequest.Create(path);
 					using (var response = (HttpWebResponse)request.GetResponse())
 					{
-						U.L(LogLevel.Debug, "Playlist parser", "Parsing response from " + path);
 						var stream = response.GetResponseStream();
 						var encoding = Encoding.GetEncoding("utf-8");
 						using (var reader = new StreamReader(stream, encoding))

@@ -53,6 +53,11 @@ namespace Stoffi.Core.Settings
 		#region Members
 		private string dbConnection;
 		private SQLiteConnection cnn;
+		// setup timer, used to bulk multiple, subsequent calls to ExecuteNonQuery
+		private Timer nonQueryTimer;
+		private List<string> nonQueries = new List<string>();
+		private object nonQueryLock = new object();
+		private bool commandInQueue = false;
 		#endregion
 
 		#region Constructor
@@ -61,8 +66,10 @@ namespace Stoffi.Core.Settings
 			if (!File.Exists(filename))
 				SQLiteConnection.CreateFile(filename);
 			dbConnection = "uri=file:settings.s3db";
-			cnn = new SQLiteConnection (dbConnection);
-			cnn.Open ();
+			U.L(LogLevel.Debug, "Database", "Creating connection");
+			cnn = new SQLiteConnection(dbConnection);
+			U.L(LogLevel.Debug, "Database", "Opening connection");
+			cnn.Open();
 		}
 		public static string[] Split(string source, char separator)
 		{
@@ -145,24 +152,17 @@ namespace Stoffi.Core.Settings
 			return dt;
 		}
 
-		public int ExecuteNonQuery(string sql)
+		public void ExecuteNonQuery(string sql)
 		{
-			var fails = 0;
-			var maxAttempts = 5;
-			while (fails < maxAttempts) {
-				try
-				{
-					var cmd = new SQLiteCommand (cnn);
-					cmd.CommandText = sql;
-					var rowsUpdated = cmd.ExecuteNonQuery ();
-					return rowsUpdated;
-				}
-				catch (Exception e) {
-					U.L (LogLevel.Error, "Settings", "Error executing non-query in database: " + e.Message);
-				}
-				fails++;
+			lock (nonQueryLock)
+			{
+				commandInQueue = true;
+				if (nonQueryTimer == null)
+					nonQueryTimer = new Timer(NonQueryTimer_Tick, null, 50, Timeout.Infinite);
+				else
+					nonQueryTimer.Change(50, Timeout.Infinite);
+				nonQueries.Add(sql);
 			}
-			return 0;
 		}
 
 		public string ExecuteScalar(string sql)
@@ -187,40 +187,56 @@ namespace Stoffi.Core.Settings
 			return ExecuteReader (sql);
 		}
 
-		public int Insert(string table, Dictionary<string,string> data)
+		public void Insert(string table, Dictionary<string,string> data)
 		{
 			var columns = String.Join (", ", from d in data select d.Key);
 			var values = String.Join (", ", from d in data select d.Value);
-			return ExecuteNonQuery (String.Format ("insert into {0}({1}) values({2});", table, columns, values));
+			ExecuteNonQuery (String.Format ("insert into {0}({1}) values({2});", table, columns, values));
+		}
+
+		public void BulkInsert(string table, IEnumerable<Dictionary<string, string>> data)
+		{
+			if (data.Count() == 0)
+				return;
+
+			var columns = String.Join(", ", from d in data.ElementAt(0) select d.Key);
+			List<string> rows = new List<string>();
+			foreach (var d in data)
+			{
+				rows.Add("(" + String.Join(", ", from x in d select x.Value) + ")");
+			}
+			var values = String.Join(", ", rows);
+			ExecuteNonQuery(String.Format("insert into {0}({1}) values {2};", table, columns, values));
 		}
 
 		public int LastID(string table)
 		{
+			AwaitCommand();
 			var data = ExecuteReader (String.Format("select max(rowid) as id from {0};", table));
 			if (data.Rows.Count == 0)
 				return -1;
 			return Convert.ToInt32 (data.Rows [0]["id"].ToString ());
 		}
 
-		public int Update(string table, Dictionary<string,string> data, string filter)
+		public void Update(string table, Dictionary<string,string> data, string filter)
 		{
 			var vals = "";
 			if (data.Count > 0)
 				vals = String.Join (",", from d in data select String.Format ("{0}={1}", d.Key, d.Value));
-			return ExecuteNonQuery (String.Format ("update {0} set {1} where {2};", table, vals, filter));
+			ExecuteNonQuery (String.Format ("update {0} set {1} where {2};", table, vals, filter));
 		}
 
-		public int Delete(string table, string filter)
+		public void Delete(string table, string filter)
 		{
-			return ExecuteNonQuery (String.Format ("delete from {0} where {1};", table, filter));
+			ExecuteNonQuery (String.Format ("delete from {0} where {1};", table, filter));
 		}
 
-		public int Delete(string table)
+		public void Delete(string table)
 		{
-			return Delete (table, "1");
+			Delete (table, "1");
 		}
 
-		public int CreateTable(string name, string[] textFields = null, string[] integerFields = null, string[] realFields = null)
+		public void CreateTable(string name, string[] textFields = null, string[] integerFields = null, string[] realFields = null)
 		{
 			var sql = "create table if not exists " + name + " (";
 
@@ -245,7 +261,49 @@ namespace Stoffi.Core.Settings
 
 			sql += String.Join (", ", fieldGroups);
 			sql += ");";
-			return ExecuteNonQuery (sql);
+			ExecuteNonQuery (sql);
+		}
+
+		public void AwaitCommand()
+		{
+			while (commandInQueue) ;
+		}
+
+		private void NonQueryTimer_Tick(object state)
+		{
+			List<string> commands;
+			lock (nonQueryLock)
+			{
+				commands = nonQueries.ToList();
+				nonQueries.Clear();
+				nonQueryTimer.Dispose();
+				nonQueryTimer = null;
+			}
+			var fails = 0;
+			var maxAttempts = 5;
+			while (fails < maxAttempts)
+			{
+				try
+				{
+					//var trans = cnn.BeginTransaction(IsolationLevel.Serializable);
+					foreach (var cmd in commands)
+					{
+						new SQLiteCommand(cnn)
+						{
+							CommandText = cmd
+						}.ExecuteNonQuery();
+					}
+					//trans.Commit();
+					lock (nonQueryLock) { commandInQueue = false; }
+					return;
+				}
+				catch (Exception e)
+				{
+					U.L(LogLevel.Error, "Settings", "Error executing non-query in database: " + e.Message);
+				}
+				fails++;
+			}
+			lock (nonQueryLock) { commandInQueue = false; }
 		}
 
 		#endregion
@@ -281,7 +339,9 @@ namespace Stoffi.Core.Settings
 		/// </summary>
 		static Manager()
 		{
+			U.L(LogLevel.Information, "Settings", "Initializing database");
 			InitializeDatabase();
+			U.L(LogLevel.Debug, "Settings", "Database is initialized");
 		}
 
 		#endregion
@@ -699,8 +759,12 @@ namespace Stoffi.Core.Settings
 			if (reset && File.Exists(path))
 				File.Delete(path);
 
+			U.L(LogLevel.Debug, "Database", "Creating new database instance");
 			db = new Database(path);
+			U.L(LogLevel.Debug, "Database", "Creating new database unless it exists");
 			CreateDatabase();
+			db.AwaitCommand();
+			U.L(LogLevel.Debug, "Database", "Loading database into memory");
 			LoadDatabase();
 		}
 
@@ -2175,8 +2239,8 @@ namespace Stoffi.Core.Settings
 			{
 				try
 				{
-					foreach (var track in tracks)
-						SaveTrack(track, table);
+					var data = (from t in tracks select CreateData(t)).ToList();
+					db.BulkInsert(table, data);
 					break;
 				}
 				catch (InvalidOperationException e) { } // collection was modified while trying to save
@@ -2297,8 +2361,10 @@ namespace Stoffi.Core.Settings
 		/// <param name="parentID">The ID of the config row.</param>
 		private static void SaveColumns(IEnumerable<ListColumn> columns, string table, int parentID)
 		{
-			foreach (var column in columns)
-				SaveColumn (column, table, parentID);
+			var data = (from x in columns select CreateData(x)).ToList();
+			foreach (var x in data)
+				x.Add("config", DBEncode(parentID));
+			db.BulkInsert(table, data);
 		}
 
 		/// <summary>
@@ -2345,8 +2411,9 @@ namespace Stoffi.Core.Settings
 		/// <param name="parentID">The ID of the profile row.</param>
 		private static void SaveShortcuts(IEnumerable<KeyboardShortcut> shortcuts, string table, int parentID)
 		{
-			foreach (var shortcut in shortcuts)
-				SaveShortcut (shortcut, table, parentID);
+			var data = (from x in shortcuts select CreateData(x)).ToList();
+			foreach (var x in data) { x["profile"] = DBEncode(parentID); }
+			db.BulkInsert(table, data);
 		}
 
 		/// <summary>
@@ -2495,8 +2562,8 @@ namespace Stoffi.Core.Settings
 		/// <param name="table">Database table.</param>
 		private static void SaveSources(IEnumerable<Location> sources, string table)
 		{
-			foreach (var source in sources)
-				SaveSource (source, table);
+			var data = (from x in sources select CreateData(x)).ToList();
+			db.BulkInsert(table, data);
 		}
 
 		/// <summary>
@@ -2537,13 +2604,15 @@ namespace Stoffi.Core.Settings
 			data ["listConfig"] = DBEncode (db.LastID("listConfigurations"));
 			db.Update (table, data, String.Format("rowid={0}", rowid));
 
+			var d = new List<Dictionary<string, string>>();
 			foreach (var t in playlist.Tracks)
 			{
-				data.Clear ();
-				data ["path"] = DBEncode(t.Path);
-				data ["playlist"] = DBEncode (rowid);
-				db.Insert ("playlistTracks", data);
+				var x = new Dictionary<string, string>();
+				x["path"] = DBEncode(t.Path);
+				x["playlist"] = DBEncode(rowid);
+				d.Add(x);
 			}
+			db.BulkInsert("playlistTracks", d);
 		}
 
 		/// <summary>

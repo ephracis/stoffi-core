@@ -69,6 +69,6 @@ namespace Stoffi.Core.Sources.Radio
 		/// Fetch default radio stations and add to collection.
 		/// </summary>
 		/// <param name="stations">Station collection.</param>
-		public abstract void FetchStations(ObservableCollection<Track> stations);
+		public abstract List<Track> FetchStations();
 	}
 }
