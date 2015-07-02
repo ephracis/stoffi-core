@@ -1,0 +1,26 @@
+version: 1.50.0-beta+{build}
+branches:
+  only:
+  - master
+  - develop
+assembly_info:
+  patch: true
+  file: '**\AssemblyInfo.*'
+  assembly_version: '{version}'
+  assembly_file_version: '{version}'
+  assembly_informational_version: '{version}'
+install:
+- git submodule update --init --recursive
+before_build:
+- cp Services\Keys.tmpl.cs Services\Keys.cs
+build:
+  project: Stoffi Player Core.sln
+  verbosity: minimal
+notifications:
+- provider: Slack
+  auth_token:
+    secure: ZIZ1ZE+PiJy00kpkOs/50Cgnn1y/U65Hs5xV9eYdyvnDi0tItUUd0y3DnS4l/mld
+  channel: stoffi
+  on_build_success: true
+  on_build_failure: true
+  on_build_status_changed: true
