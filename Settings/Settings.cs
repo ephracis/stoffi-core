@@ -1624,7 +1624,7 @@ namespace Stoffi.Core.Settings
 			#region List configurations
 
 			// sources list
-			if (sourceListConfig == null)
+			if (sourceListConfig == null || sourceListConfig.Columns.Count == 0)
 			{
 				sourceListConfig = ListConfig.Create();
 				sourceListConfig.Columns.Add(ListColumn.Create("Data", U.T("ColumnLocation"), 200));
@@ -1652,7 +1652,7 @@ namespace Stoffi.Core.Settings
 			JamendoListConfig.PropertyChanged += Object_PropertyChanged;
 
 			// file list
-			if (fileListConfig == null)
+			if (fileListConfig == null || fileListConfig.Columns.Count == 0)
 			{
 				fileListConfig = ListConfig.Create();
 				fileListConfig.Initialize();
@@ -1666,7 +1666,7 @@ namespace Stoffi.Core.Settings
 			fileListConfig.PropertyChanged += Object_PropertyChanged;
 
 			// radio list
-			if (radioListConfig == null)
+			if (radioListConfig == null || radioListConfig.Columns.Count == 0)
 			{
 				radioListConfig = ListConfig.Create();
 				radioListConfig.Columns.Add(ListColumn.Create("Group", U.T("ColumnGroup"), 150));
@@ -1685,7 +1685,7 @@ namespace Stoffi.Core.Settings
 			radioListConfig.PropertyChanged += Object_PropertyChanged;
 
 			// disc list
-			if (discListConfig == null)
+			if (discListConfig == null || discListConfig.Columns.Count == 0)
 			{
 				discListConfig = ListConfig.Create();
 				discListConfig.Initialize();
@@ -1695,7 +1695,7 @@ namespace Stoffi.Core.Settings
 			discListConfig.PropertyChanged += Object_PropertyChanged;
 
 			// queue list
-			if (queueListConfig == null)
+			if (queueListConfig == null || queueListConfig.Columns.Count == 0)
 			{
 				queueListConfig = ListConfig.Create();
 				queueListConfig.IsNumberVisible = true;
@@ -1710,7 +1710,7 @@ namespace Stoffi.Core.Settings
 			queueListConfig.PropertyChanged += Object_PropertyChanged;
 
 			// history list
-			if (historyListConfig == null)
+			if (historyListConfig == null || historyListConfig.Columns.Count == 0)
 			{
 				historyListConfig = ListConfig.Create();
 				historyListConfig.Columns.Add(ListColumn.Create("LastPlayed", U.T("ColumnPlayed"), 200, "DateTime"));
@@ -1729,7 +1729,7 @@ namespace Stoffi.Core.Settings
 			}
 			historyListConfig.PropertyChanged += Object_PropertyChanged;
 
-			if (pluginListConfig == null)
+			if (pluginListConfig == null || pluginListConfig.Columns.Count == 0)
 			{
 				pluginListConfig = ListConfig.Create();
 				pluginListConfig.AcceptFileDrops = false;
