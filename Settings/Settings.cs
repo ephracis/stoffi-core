@@ -55,8 +55,8 @@ namespace Stoffi.Core.Settings
 		private static double bufferSize = 0;
 
 		#region GUI
-		private static double winWidth = -1;
-		private static double winHeight = -1;
+		private static double winWidth = 1000;
+		private static double winHeight = 600;
 		private static double winLeft = -1;
 		private static double winTop = -1;
 		private static string winState = "Normal";
