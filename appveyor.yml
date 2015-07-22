@@ -1,4 +1,4 @@
-version: 1.50.0-beta+{build}
+version: 2.0.0-beta+{build}
 branches:
   only:
   - master
@@ -9,12 +9,9 @@ assembly_info:
   assembly_version: '{version}'
   assembly_file_version: '{version}'
   assembly_informational_version: '{version}'
-install:
-- git submodule update --init --recursive
-before_build:
-- cp Services\Keys.tmpl.cs Services\Keys.cs
+os: Visual Studio 2015 RC
 build:
-  project: Stoffi Player Core.sln
+  project: Core.sln
   verbosity: minimal
 notifications:
 - provider: Slack
