@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Core
+namespace Stoffi.Core.Interfaces
 {
-    public class Class1
+    public interface IPageViewModel
     {
+        string Name { get; }
     }
 }

@@ -201,6 +201,18 @@
           "lib/dotnet/Microsoft.Win32.Primitives.dll": {}
         }
       },
+      "Prism.Mvvm/1.1.1": {
+        "compile": {
+          "lib/windows8/Microsoft.Practices.Prism.Mvvm.dll": {},
+          "lib/windows8/Microsoft.Practices.Prism.Mvvm.Store.dll": {},
+          "lib/windows8/Microsoft.Practices.Prism.SharedInterfaces.dll": {}
+        },
+        "runtime": {
+          "lib/windows8/Microsoft.Practices.Prism.Mvvm.dll": {},
+          "lib/windows8/Microsoft.Practices.Prism.Mvvm.Store.dll": {},
+          "lib/windows8/Microsoft.Practices.Prism.SharedInterfaces.dll": {}
+        }
+      },
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Runtime": "[4.0.20, )",
@@ -1777,6 +1789,18 @@
         },
         "runtime": {
           "lib/dotnet/Microsoft.Win32.Primitives.dll": {}
+        }
+      },
+      "Prism.Mvvm/1.1.1": {
+        "compile": {
+          "lib/windows8/Microsoft.Practices.Prism.Mvvm.dll": {},
+          "lib/windows8/Microsoft.Practices.Prism.Mvvm.Store.dll": {},
+          "lib/windows8/Microsoft.Practices.Prism.SharedInterfaces.dll": {}
+        },
+        "runtime": {
+          "lib/windows8/Microsoft.Practices.Prism.Mvvm.dll": {},
+          "lib/windows8/Microsoft.Practices.Prism.Mvvm.Store.dll": {},
+          "lib/windows8/Microsoft.Practices.Prism.SharedInterfaces.dll": {}
         }
       },
       "System.AppContext/4.0.0": {
@@ -3388,6 +3412,18 @@
         },
         "runtime": {
           "lib/dotnet/Microsoft.Win32.Primitives.dll": {}
+        }
+      },
+      "Prism.Mvvm/1.1.1": {
+        "compile": {
+          "lib/windows8/Microsoft.Practices.Prism.Mvvm.dll": {},
+          "lib/windows8/Microsoft.Practices.Prism.Mvvm.Store.dll": {},
+          "lib/windows8/Microsoft.Practices.Prism.SharedInterfaces.dll": {}
+        },
+        "runtime": {
+          "lib/windows8/Microsoft.Practices.Prism.Mvvm.dll": {},
+          "lib/windows8/Microsoft.Practices.Prism.Mvvm.Store.dll": {},
+          "lib/windows8/Microsoft.Practices.Prism.SharedInterfaces.dll": {}
         }
       },
       "System.AppContext/4.0.0": {
@@ -5006,6 +5042,18 @@
           "lib/dotnet/Microsoft.Win32.Primitives.dll": {}
         }
       },
+      "Prism.Mvvm/1.1.1": {
+        "compile": {
+          "lib/windows8/Microsoft.Practices.Prism.Mvvm.dll": {},
+          "lib/windows8/Microsoft.Practices.Prism.Mvvm.Store.dll": {},
+          "lib/windows8/Microsoft.Practices.Prism.SharedInterfaces.dll": {}
+        },
+        "runtime": {
+          "lib/windows8/Microsoft.Practices.Prism.Mvvm.dll": {},
+          "lib/windows8/Microsoft.Practices.Prism.Mvvm.Store.dll": {},
+          "lib/windows8/Microsoft.Practices.Prism.SharedInterfaces.dll": {}
+        }
+      },
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Runtime": "[4.0.20, )",
@@ -6615,6 +6663,18 @@
         },
         "runtime": {
           "lib/dotnet/Microsoft.Win32.Primitives.dll": {}
+        }
+      },
+      "Prism.Mvvm/1.1.1": {
+        "compile": {
+          "lib/windows8/Microsoft.Practices.Prism.Mvvm.dll": {},
+          "lib/windows8/Microsoft.Practices.Prism.Mvvm.Store.dll": {},
+          "lib/windows8/Microsoft.Practices.Prism.SharedInterfaces.dll": {}
+        },
+        "runtime": {
+          "lib/windows8/Microsoft.Practices.Prism.Mvvm.dll": {},
+          "lib/windows8/Microsoft.Practices.Prism.Mvvm.Store.dll": {},
+          "lib/windows8/Microsoft.Practices.Prism.SharedInterfaces.dll": {}
         }
       },
       "System.AppContext/4.0.0": {
@@ -8233,6 +8293,18 @@
           "lib/dotnet/Microsoft.Win32.Primitives.dll": {}
         }
       },
+      "Prism.Mvvm/1.1.1": {
+        "compile": {
+          "lib/windows8/Microsoft.Practices.Prism.Mvvm.dll": {},
+          "lib/windows8/Microsoft.Practices.Prism.Mvvm.Store.dll": {},
+          "lib/windows8/Microsoft.Practices.Prism.SharedInterfaces.dll": {}
+        },
+        "runtime": {
+          "lib/windows8/Microsoft.Practices.Prism.Mvvm.dll": {},
+          "lib/windows8/Microsoft.Practices.Prism.Mvvm.Store.dll": {},
+          "lib/windows8/Microsoft.Practices.Prism.SharedInterfaces.dll": {}
+        }
+      },
       "System.AppContext/4.0.0": {
         "dependencies": {
           "System.Runtime": "[4.0.20, )",
@@ -9842,6 +9914,18 @@
         },
         "runtime": {
           "lib/dotnet/Microsoft.Win32.Primitives.dll": {}
+        }
+      },
+      "Prism.Mvvm/1.1.1": {
+        "compile": {
+          "lib/windows8/Microsoft.Practices.Prism.Mvvm.dll": {},
+          "lib/windows8/Microsoft.Practices.Prism.Mvvm.Store.dll": {},
+          "lib/windows8/Microsoft.Practices.Prism.SharedInterfaces.dll": {}
+        },
+        "runtime": {
+          "lib/windows8/Microsoft.Practices.Prism.Mvvm.dll": {},
+          "lib/windows8/Microsoft.Practices.Prism.Mvvm.Store.dll": {},
+          "lib/windows8/Microsoft.Practices.Prism.SharedInterfaces.dll": {}
         }
       },
       "System.AppContext/4.0.0": {
@@ -11865,6 +11949,39 @@
         "ref/xamarinios10/_._",
         "ref/xamarinmac20/_._",
         "package/services/metadata/core-properties/1d4eb9d0228b48b88d2df3822fba2d86.psmdcp",
+        "[Content_Types].xml"
+      ]
+    },
+    "Prism.Mvvm/1.1.1": {
+      "sha512": "vaV/EBX3GS39vAcUN/tpOK+1B85lh16Sb6Ip+VdzUsTaN9IYdzz8EUha6Nm70YDjrdDz74oJahJomrftza0ySw==",
+      "type": "Package",
+      "files": [
+        "_rels/.rels",
+        "Prism.Mvvm.nuspec",
+        "%5BContent_Types%5D.xml",
+        "[Content_Types].xml",
+        "lib/net45/Microsoft.Practices.Prism.Mvvm.Desktop.dll",
+        "lib/net45/Microsoft.Practices.Prism.Mvvm.dll",
+        "lib/net45/Microsoft.Practices.Prism.Mvvm.xml",
+        "lib/net45/Microsoft.Practices.Prism.SharedInterfaces.dll",
+        "lib/net45/Microsoft.Practices.Prism.SharedInterfaces.xml",
+        "lib/portable-windows8+wpa81+net45/Microsoft.Practices.Prism.Mvvm.dll",
+        "lib/portable-windows8+wpa81+net45/Microsoft.Practices.Prism.Mvvm.xml",
+        "lib/portable-windows8+wpa81+net45/Microsoft.Practices.Prism.SharedInterfaces.dll",
+        "lib/portable-windows8+wpa81+net45/Microsoft.Practices.Prism.SharedInterfaces.xml",
+        "lib/windows8/Microsoft.Practices.Prism.Mvvm.dll",
+        "lib/windows8/Microsoft.Practices.Prism.Mvvm.Store.dll",
+        "lib/windows8/Microsoft.Practices.Prism.Mvvm.xml",
+        "lib/windows8/Microsoft.Practices.Prism.SharedInterfaces.dll",
+        "lib/windows8/Microsoft.Practices.Prism.SharedInterfaces.xml",
+        "lib/wpa81/Microsoft.Practices.Prism.Mvvm.dll",
+        "lib/wpa81/Microsoft.Practices.Prism.Mvvm.Phone.dll",
+        "lib/wpa81/Microsoft.Practices.Prism.Mvvm.xml",
+        "lib/wpa81/Microsoft.Practices.Prism.SharedInterfaces.dll",
+        "lib/wpa81/Microsoft.Practices.Prism.SharedInterfaces.xml",
+        "package/services/metadata/core-properties/1951281b8f2d45c1bf74ce41987210ab.psmdcp",
+        "package/services/metadata/core-properties/460a1cdd31ba4955a3be6b66ed9e0e9b.psmdcp",
+        "package/services/metadata/core-properties/9e2fc39d86cd4a85bedd66f4d7cd9dce.psmdcp",
         "[Content_Types].xml"
       ]
     },
