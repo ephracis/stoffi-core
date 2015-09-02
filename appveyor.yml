@@ -9,10 +9,11 @@ assembly_info:
   assembly_version: '{version}'
   assembly_file_version: '{version}'
   assembly_informational_version: '{version}'
-os: Visual Studio 2015 RC
+os: Visual Studio 2015
+before_build:
+- nuget restore
 build:
-  project: Core.sln
-  verbosity: minimal
+  project: Core.csproj
 notifications:
 - provider: Slack
   auth_token:
