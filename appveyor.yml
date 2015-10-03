@@ -10,10 +10,13 @@ assembly_info:
   assembly_file_version: '{version}'
   assembly_informational_version: '{version}'
 os: Visual Studio 2015
+platform:
+  - x64
+  - ARM
 before_build:
 - nuget restore
 build:
-  project: Core.csproj
+  project: Core.sln
 notifications:
 - provider: Slack
   auth_token:
