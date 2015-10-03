@@ -16,9 +16,7 @@ platform:
 before_build:
 - nuget restore
 build:
-  project: Core\Core.csproj
-test:
-  assemblies: Core.Tests\Core.Tests.csproj
+  project: Core.sln
 notifications:
 - provider: Slack
   auth_token:
