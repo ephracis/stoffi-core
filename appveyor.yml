@@ -10,9 +10,6 @@ assembly_info:
   assembly_file_version: '{version}'
   assembly_informational_version: '{version}'
 os: Visual Studio 2015
-platform:
-  - x64
-  - ARM
 before_build:
 - nuget restore
 build:
@@ -21,7 +18,7 @@ notifications:
 - provider: Slack
   auth_token:
     secure: ZIZ1ZE+PiJy00kpkOs/50Cgnn1y/U65Hs5xV9eYdyvnDi0tItUUd0y3DnS4l/mld
-  channel: stoffi
+  channel: general
   on_build_success: true
   on_build_failure: true
   on_build_status_changed: true

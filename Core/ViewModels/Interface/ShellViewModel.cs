@@ -1,6 +1,5 @@
 ﻿using Stoffi.Core.Interfaces;
 using System.Collections.ObjectModel;
-using Windows.Storage;
 
 namespace Stoffi.Core.ViewModels.Interface
 {
@@ -9,7 +8,10 @@ namespace Stoffi.Core.ViewModels.Interface
     /// </summary>
     public class ShellViewModel : ViewModel
     {
+        private ISettingsService settingsService;
+
         #region Properties
+
         /// <summary>
         /// The navigation bar's currently selected navigation item.
         /// </summary>
@@ -38,13 +40,15 @@ namespace Stoffi.Core.ViewModels.Interface
             get { return navItems as object; }
             set { navItems = value as ObservableCollection<IPageViewModel>; } 
         }
+
         #endregion
 
         /// <summary>
         /// Creates a new instance of the ViewModel for the main page view.
         /// </summary>
-        public ShellViewModel()
+        public ShellViewModel(ISettingsService settingsService)
         {
+            this.settingsService = settingsService;
             InitializeNavItems();
             LoadSelectedNavigation();
         }
@@ -74,13 +78,9 @@ namespace Stoffi.Core.ViewModels.Interface
 
             var i = 0;
 
-            // check for a value in settings
-            var settings = ApplicationData.Current.RoamingSettings;
-            if (settings.Values.ContainsKey("SelectedNavigationIndex"))
-            {
-                try { i = (int)settings.Values["SelectedNavigationIndex"]; }
-                catch { }
-            }
+            // get value from settings storage
+            try { i = (int)settingsService.GetValue("SelectedNavigationIndex"); }
+            catch { }
 
             // ensure the index is valid
             if (i >= navItems.Count || i < 0)
@@ -97,7 +97,7 @@ namespace Stoffi.Core.ViewModels.Interface
             if (!navItems.Contains(selectedItem as IPageViewModel))
                 return;
             var i = navItems.IndexOf(selectedItem as IPageViewModel);
-            ApplicationData.Current.RoamingSettings.Values["SelectedNavigationIndex"] = i;
+            settingsService.SetValue("SelectedNavigationIndex", i);
         }
 
         #endregion
