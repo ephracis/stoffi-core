@@ -18,7 +18,7 @@ notifications:
 - provider: Slack
   auth_token:
     secure: ZIZ1ZE+PiJy00kpkOs/50Cgnn1y/U65Hs5xV9eYdyvnDi0tItUUd0y3DnS4l/mld
-  channel: general
+  channel: '#general'
   on_build_success: true
   on_build_failure: true
   on_build_status_changed: true
