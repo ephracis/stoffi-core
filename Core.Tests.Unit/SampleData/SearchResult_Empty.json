@@ -1,0 +1,26 @@
+﻿// 20160521164743
+// http://l.stoffi.io/search.json?q=&limit=3
+
+{
+  "total_sources": 4,
+  "total_hits": 0,
+  "total_pages": 0,
+  "first_page": true,
+  "last_page": true,
+  "previous_page": null,
+  "next_page": null,
+  "out_of_bounds": true,
+  "offset": 0,
+  "hits": [
+    
+  ],
+  "benchmark": {
+    "label": "",
+    "real": 0.05603901199356187,
+    "cstime": 0.0,
+    "cutime": 0.0,
+    "stime": 0.0,
+    "utime": 0.009999999999999787,
+    "total": 0.009999999999999787
+  }
+}

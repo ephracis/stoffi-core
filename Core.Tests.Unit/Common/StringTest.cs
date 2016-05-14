@@ -1,72 +1,73 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Stoffi.Core.Common;
 
-namespace Stoffi.Core.Common.Tests
+namespace Stoffi.Core.Tests.Common
 {
     [TestClass]
     public class StringTest
     {
         [TestMethod]
-        public void CapitalizeLowercaseString()
+        public void Capitalize_LowercaseString()
         {
             Assert.AreEqual("Foo", StringHelper.Capitalize("foo"));
         }
 
         [TestMethod]
-        public void CapitalizeUppercaseString()
+        public void Capitalize_UppercaseString()
         {
             Assert.AreEqual("Foo", StringHelper.Capitalize("FOO"));
         }
 
         [TestMethod]
-        public void CapitalizeEmptyString()
+        public void Capitalize_EmptyString()
         {
             Assert.AreEqual("", StringHelper.Capitalize(""));
         }
 
         [TestMethod]
-        public void CapitalizeNull()
+        public void Capitalize_Null_ReturnsEmpty()
         {
             Assert.AreEqual("", StringHelper.Capitalize(null));
         }
 
         [TestMethod]
-        public void TitleizeTwoWords()
+        public void Titleize_TwoWords()
         {
             Assert.AreEqual("Lorem Ipsum", StringHelper.Titleize("lorem ipsum"));
         }
 
         [TestMethod]
-        public void TitleizeWithShortWord()
+        public void Titleize_WithShortWord()
         {
             Assert.AreEqual("Lorem with Ipsum", StringHelper.Titleize("LorEM WItH ipSUM"));
         }
 
         [TestMethod]
-        public void TitleizeEmptyString()
+        public void Titleize_EmptyString()
         {
             Assert.AreEqual("", StringHelper.Titleize(""));
         }
 
         [TestMethod]
-        public void TitleizeNull()
+        public void Titleize_Null_ReturnsEmpty()
         {
             Assert.AreEqual("", StringHelper.Titleize(null));
         }
 
         [TestMethod]
-        public void ClassifyTwoWords()
+        public void Classify_TwoWords()
         {
             Assert.AreEqual("LoremIpsum", StringHelper.Classify("loREM iPsum"));
         }
 
         [TestMethod]
-        public void ClassifyEmptyString()
+        public void Classify_EmptyString()
         {
             Assert.AreEqual("", StringHelper.Classify(""));
         }
 
         [TestMethod]
-        public void ClassifyNull()
+        public void Classify_Null_ReturnsEmpty()
         {
             Assert.AreEqual("", StringHelper.Classify(null));
         }

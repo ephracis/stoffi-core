@@ -1,8 +1,7 @@
-version: 2.0.0-beta+{build}
+version: 2.0.0-beta.1+{build}
 branches:
   only:
   - master
-  - develop
 assembly_info:
   patch: true
   file: '**\AssemblyInfo.*'

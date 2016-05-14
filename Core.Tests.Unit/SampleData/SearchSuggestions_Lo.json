@@ -1,0 +1,17 @@
+﻿// 20160521183157
+// http://l.stoffi.io/search/suggestions.json?q=lo
+
+[
+  {
+    "value": "love",
+    "score": 60.0
+  },
+  {
+    "value": "low",
+    "score": 15.0
+  },
+  {
+    "value": "loveboy",
+    "score": 15.0
+  }
+]
