@@ -1,0 +1,52 @@
+﻿// 20160521164714
+// http://l.stoffi.io/search.json?q=love&limit=3
+
+{
+  "total_sources": 4,
+  "total_hits": 947,
+  "total_pages": 316,
+  "first_page": true,
+  "last_page": false,
+  "previous_page": null,
+  "next_page": 2,
+  "out_of_bounds": false,
+  "offset": 0,
+  "hits": [
+    {
+      "id": 428,
+      "title": "Love",
+      "created_at": "2016-01-07T15:05:51.481Z",
+      "updated_at": "2016-01-07T15:05:51.481Z",
+      "archetype_id": null,
+      "archetype_type": null,
+      "slug": "love"
+    },
+    {
+      "id": 2689,
+      "title": "Loverboy",
+      "created_at": "2016-01-07T15:07:36.232Z",
+      "updated_at": "2016-01-07T15:07:36.232Z",
+      "archetype_id": null,
+      "archetype_type": null,
+      "slug": "loverboy"
+    },
+    {
+      "id": 2521,
+      "title": "Lover's Groove",
+      "created_at": "2016-01-07T15:07:28.988Z",
+      "updated_at": "2016-01-07T15:07:28.988Z",
+      "archetype_id": null,
+      "archetype_type": null,
+      "slug": "lover-s-groove"
+    }
+  ],
+  "benchmark": {
+    "label": "",
+    "real": 0.11732893100997899,
+    "cstime": 0.0,
+    "cutime": 0.0,
+    "stime": 0.010000000000000231,
+    "utime": 0.07999999999999918,
+    "total": 0.08999999999999941
+  }
+}
