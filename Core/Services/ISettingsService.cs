@@ -16,10 +16,10 @@ namespace Stoffi.Core.Services
     /// </remarks>
     public interface ISettingsService
     {
-        T Read<T>(string name, T otherwise);
-        void Write<T>(string name, T value);
-        bool Exists(string name);
-        void Remove(string name);
+        Task<T> Read<T>(string name, T otherwise);
+        Task Write<T>(string name, T value);
+        Task<bool> Exists(string name);
+        Task Remove(string name);
     }
 
     /// <summary>
@@ -27,9 +27,9 @@ namespace Stoffi.Core.Services
     /// </summary>
     public interface ISettingsStorage
     {
-        T Read<T>(string name, T otherwise);
-        void Write<T>(string name, T value);
-        bool Exists(string name);
-        void Remove(string name);
+        Task<T> Read<T>(string name, T otherwise);
+        Task Write<T>(string name, T value);
+        Task<bool> Exists(string name);
+        Task Remove(string name);
     }
 }

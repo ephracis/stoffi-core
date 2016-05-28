@@ -9,31 +9,31 @@ namespace Stoffi.Core.Tests.Services
     public class SettingsServiceTest
     {
         [TestMethod]
-        public void Read_Existing_ReturnsCastedObject()
+        public async void Read_Existing_ReturnsCastedObject()
         {
             var storage = new MockSettingsStorage();
             var service = new SettingsService(storage);
             storage.Settings["test"] = 42;
-            Assert.AreEqual(42, service.Read<int>("test", 0));
+            Assert.AreEqual(42, await service.Read<int>("test", 0));
         }
 
         [TestMethod]
-        public void Read_NonExisting_ReturnsOtherwise()
+        public async void Read_NonExisting_ReturnsOtherwise()
         {
             var storage = new MockSettingsStorage();
             var service = new SettingsService(storage);
-            Assert.AreEqual(1337, service.Read<int>("test", 1337));
+            Assert.AreEqual(1337, await service.Read<int>("test", 1337));
         }
 
         [TestMethod]
-        public void Read_WrongType_ThrowsException()
+        public async void Read_WrongType_ThrowsException()
         {
             var storage = new MockSettingsStorage();
             var service = new SettingsService(storage);
             storage.Settings["test"] = "sample string";
             try
             {
-                service.Read<int>("test", 0);
+                await service.Read<int>("test", 0);
                 Assert.Fail("No exception was thrown");
             }
             catch (InvalidCastException ex)
@@ -44,57 +44,57 @@ namespace Stoffi.Core.Tests.Services
         }
 
         [TestMethod]
-        public void Write_NonExisting_CreatesSetting()
+        public async void Write_NonExisting_CreatesSetting()
         {
             var storage = new MockSettingsStorage();
             var service = new SettingsService(storage);
-            service.Write<int>("test", 42);
+            await service.Write<int>("test", 42);
             Assert.AreEqual(42, storage.Settings["test"]);
         }
 
         [TestMethod]
-        public void Write_Existing_OverwritesSetting()
+        public async void Write_Existing_OverwritesSetting()
         {
             var storage = new MockSettingsStorage();
             var service = new SettingsService(storage);
             storage.Settings["test"] = 1337;
-            service.Write<int>("test", 42);
+            await service.Write<int>("test", 42);
             Assert.AreEqual(42, storage.Settings["test"]);
         }
 
         [TestMethod]
-        public void Exists_Existing_ReturnsTrue()
+        public async void Exists_Existing_ReturnsTrue()
         {
             var storage = new MockSettingsStorage();
             var service = new SettingsService(storage);
             storage.Settings["test"] = 42;
-            Assert.IsTrue(service.Exists("test"));
+            Assert.IsTrue(await service.Exists("test"));
         }
 
         [TestMethod]
-        public void Exists_NonExisting_ReturnsFalse()
+        public async void Exists_NonExisting_ReturnsFalse()
         {
             var storage = new MockSettingsStorage();
             var service = new SettingsService(storage);
-            Assert.IsFalse(service.Exists("test"));
+            Assert.IsFalse(await service.Exists("test"));
         }
 
         [TestMethod]
-        public void Remove_Existing_RemovesSetting()
+        public async void Remove_Existing_RemovesSetting()
         {
             var storage = new MockSettingsStorage();
             var service = new SettingsService(storage);
             storage.Settings["test"] = 42;
-            service.Remove("test");
+            await service.Remove("test");
             Assert.IsFalse(storage.Settings.ContainsKey("test"));
         }
 
         [TestMethod]
-        public void Remove_NonExisting_DoesNothing()
+        public async void Remove_NonExisting_DoesNothing()
         {
             var storage = new MockSettingsStorage();
             var service = new SettingsService(storage);
-            service.Remove("test");
+            await service.Remove("test");
             Assert.IsFalse(storage.Settings.ContainsKey("test"));
         }
     }

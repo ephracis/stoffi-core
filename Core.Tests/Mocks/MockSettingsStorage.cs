@@ -11,25 +11,28 @@ namespace Stoffi.Core.Tests.Mocks
     {
         public Dictionary<string, object> Settings = new Dictionary<string, object>();
 
-        public bool Exists(string name)
+        public async Task<bool> Exists(string name)
         {
+            await Task.CompletedTask;
             return Settings.Keys.Contains<string>(name);
         }
 
-        public T Read<T>(string name, T otherwise)
+        public async Task<T> Read<T>(string name, T otherwise)
         {
-            return Exists(name) ? (T)Settings[name] : otherwise;
+            return await Exists(name) ? (T)Settings[name] : otherwise;
         }
 
-        public void Remove(string name)
+        public async Task Remove(string name)
         {
-            if (Exists(name))
+            if (await Exists(name))
                 Settings.Remove(name);
+            await Task.CompletedTask;
         }
 
-        public void Write<T>(string name, T value)
+        public async Task Write<T>(string name, T value)
         {
             Settings[name] = value as object;
+            await Task.CompletedTask;
         }
     }
 }

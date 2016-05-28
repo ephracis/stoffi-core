@@ -32,7 +32,7 @@ namespace Stoffi.Core.Services
         /// </summary>
         /// <param name="name">The name of the setting</param>
         /// <returns>True if the setting exists, otherwise false</returns>
-        public bool Exists(string name)
+        public Task<bool> Exists(string name)
         {
             return storage.Exists(name);
         }
@@ -44,7 +44,7 @@ namespace Stoffi.Core.Services
         /// <param name="name">The name of the setting</param>
         /// <param name="otherwise">The default value to return if the setting is not found</param>
         /// <returns>The setting if found, `otherwise` if not</returns>
-        public T Read<T>(string name, T otherwise)
+        public Task<T> Read<T>(string name, T otherwise)
         {
             return storage.Read<T>(name, otherwise);
         }
@@ -53,9 +53,9 @@ namespace Stoffi.Core.Services
         /// Remove a given setting.
         /// </summary>
         /// <param name="name">The name of the setting</param>
-        public void Remove(string name)
+        public async Task Remove(string name)
         {
-            storage.Remove(name);
+            await storage.Remove(name);
         }
 
         /// <summary>
@@ -64,9 +64,9 @@ namespace Stoffi.Core.Services
         /// <typeparam name="T">The type of the setting</typeparam>
         /// <param name="name">The name of the setting</param>
         /// <param name="value">The value of the setting</param>
-        public void Write<T>(string name, T value)
+        public async Task Write<T>(string name, T value)
         {
-            storage.Write<T>(name, value);
+            await storage.Write<T>(name, value);
         }
     }
 }
