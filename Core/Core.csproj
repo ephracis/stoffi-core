@@ -41,6 +41,7 @@
   <ItemGroup>
     <Compile Include="Common\String.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="Services\Container.cs" />
     <Compile Include="Services\ISettingsService.cs" />
     <Compile Include="Models\Model.cs" />
     <Compile Include="Models\SearchResult.cs" />
