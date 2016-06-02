@@ -40,7 +40,7 @@ namespace Stoffi.Core.Services
         /// <returns>An object describing the search result</returns>
         public async Task<SearchResult> GetFilteredSongsAsync(string searchQuery, int maxResults)
         {
-            var uri = new Uri($"{Constants.ServerAddress}/search.json?q={searchQuery}&limit={maxResults}");
+            var uri = new Uri($"{Constants.ServerAddress}/search.json?q={searchQuery}&limit={maxResults}&c=songs");
             var response = await httpClient.GetAsync(uri);
             response.EnsureSuccessStatusCode();
             var responseContent = await response.Content.ReadAsStringAsync();

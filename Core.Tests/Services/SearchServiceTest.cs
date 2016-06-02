@@ -15,7 +15,7 @@ namespace Stoffi.Core.Tests.Services
         {
             var mockResponseHandler = new MockResponseHandler();
             mockResponseHandler.AddFakeResponse(
-                "http://l.stoffi.io/search.json?q=love&limit=3",
+                "http://l.stoffi.io/search.json?q=love&limit=3&c=songs",
                 "SearchResult_Love.json");
             var httpClient = new HttpClient(mockResponseHandler);
             var searchService = new SearchService(httpClient);
@@ -30,7 +30,7 @@ namespace Stoffi.Core.Tests.Services
         {
             var mockResponseHandler = new MockResponseHandler();
             mockResponseHandler.AddFakeResponse(
-                "http://l.stoffi.io/search.json?q=&limit=3",
+                "http://l.stoffi.io/search.json?q=&limit=3&c=songs",
                 "SearchResult_Empty.json");
             var httpClient = new HttpClient(mockResponseHandler);
             var searchService = new SearchService(httpClient);
